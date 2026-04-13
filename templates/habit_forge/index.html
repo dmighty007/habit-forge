@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Forge Pro | Advanced Cognitive Support</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="state-steady">
+    <div id="app">
+        <nav class="glass-nav">
+            <div class="logo">Habit Forge <span class="badge">PRO</span></div>
+            <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Brutal Mode">☀️ Cheerful</button>
+            
+            <div class="state-selector-wrapper">
+                <span class="label">Current State:</span>
+                <div class="state-pills" id="energy-selector">
+                    <button class="state-pill" data-state="low" title="Low Battery - Tiny version of rituals only">🔋 Low</button>
+                    <button class="state-pill active" data-state="med" title="Steady Flow - Normal rituals">⚡ Steady</button>
+                    <button class="state-pill" data-state="high" title="Hyperfocus - Challenge yourself">🚀 Hyper</button>
+                </div>
+            </div>
+
+            <div class="stats-group">
+                <div class="stat-item focus">
+                    <span class="stat-icon">🎯</span>
+                    <span id="focus-points">0</span> Focus
+                </div>
+                <div class="stat-item essence">
+                    <span class="stat-icon">✨</span>
+                    <span id="essence-count">0</span> Essence
+                </div>
+            </div>
+        </nav>
+
+        <main>
+            <aside class="sidebar">
+                <section class="forge-panel glass">
+                    <div class="section-header">
+                        <h2>Growth Tree</h2>
+                        <span id="tree-status-badge" class="badge secondary">Stage 1</span>
+                    </div>
+                    <div class="tree-container" id="tree-stage">
+                        <div class="tree-visual">🌱</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="tree-progress" class="progress-bar"></div>
+                    </div>
+                    <p id="tree-status" class="muted">Seeds planted...</p>
+                    <button id="water-tree-btn" class="primary-btn pulse full-width">Water Tree (10 ✨)</button>
+                    <button id="start-healthy-week-btn" class="secondary-btn full-width" style="margin-top: 10px;">🍏 Initiate Healthy Week</button>
+                </section>
+
+                <!-- 🍅 FOCUS TIMER -->
+                <section class="timer-panel glass">
+                    <div class="section-header">
+                        <h2>🍅 Focus Timer</h2>
+                        <span id="timer-mode-badge" class="badge secondary small">work</span>
+                    </div>
+                    <div class="timer-ring-container">
+                        <svg class="timer-ring" viewBox="0 0 120 120">
+                            <circle class="timer-bg" cx="60" cy="60" r="52" />
+                            <circle class="timer-progress" id="timer-circle" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="timer-display" id="timer-display">25:00</div>
+                    </div>
+                    <div class="timer-controls">
+                        <button id="timer-start" class="primary-btn">▶ Start</button>
+                        <button id="timer-reset" class="secondary-btn">↺ Reset</button>
+                    </div>
+                    <p id="timer-sessions" class="muted small" style="text-align:center;margin-top:8px;">Sessions: 0 🍅</p>
+                </section>
+
+                <!-- 🧊 ICEBREAKER -->
+                <section class="glass" style="text-align:center;">
+                    <button id="icebreaker-btn" class="primary-btn full-width">🧊 I'm Stuck — Pick For Me</button>
+                    <p id="icebreaker-result" class="muted small" style="margin-top:10px;min-height:20px;"></p>
+                </section>
+
+                <section class="todo-panel glass">
+                    <div class="section-header">
+                        <h2>Daily Focus</h2>
+                        <button id="add-todo-btn" class="minimal-btn">+</button>
+                    </div>
+                    <div id="todo-list" class="todo-list">
+                        <!-- Todos injected here -->
+                    </div>
+                </section>
+
+                <!-- 📝 BRAIN DUMP -->
+                <section class="braindump-panel glass">
+                    <div class="section-header">
+                        <h2>📝 Brain Dump</h2>
+                        <button id="clear-dump-btn" class="minimal-btn" title="Clear">🗑</button>
+                    </div>
+                    <textarea id="brain-dump" class="braindump-textarea" placeholder="Dump random thoughts here... no judgment, no organization required. Just get it out of your head."></textarea>
+                </section>
+
+                <section class="evidence-panel glass">
+                    <div class="section-header">
+                        <h2>Evidence Locker</h2>
+                        <p class="muted small">Proof of competence</p>
+                    </div>
+                    <div id="evidence-list" class="evidence-list">
+                        <!-- Evidence records injected here -->
+                    </div>
+                </section>
+            </aside>
+
+            <section class="ritual-container">
+                <!-- 🔮 FORTUNE COOKIE -->
+                <div class="fortune-card glass" id="fortune-card">
+                    <span class="fortune-icon">🔮</span>
+                    <p id="fortune-text" class="fortune-text">Loading wisdom...</p>
+                    <button id="new-fortune-btn" class="minimal-btn" title="New fortune">🎲</button>
+                </div>
+
+                <div class="section-header">
+                    <div class="title-group">
+                        <h2>Daily Rituals</h2>
+                        <p id="ritual-suggestion" class="suggestion">Tailored to your current state.</p>
+                    </div>
+                    <button id="add-habit-btn" class="secondary-btn">+ New Ritual</button>
+                </div>
+                
+                <div id="habit-list" class="ritual-grid">
+                    <!-- Habits will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- 🏅 ACHIEVEMENTS -->
+        <section class="achievements-section glass">
+            <div class="section-header">
+                <h2>🏅 Achievements</h2>
+            </div>
+            <div id="achievements-grid" class="achievements-grid">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <section class="reward-section glass">
+            <div class="section-header">
+                <h2>Reward Boutique</h2>
+            </div>
+            <div id="reward-list" class="reward-grid">
+                <!-- Rewards will be injected here -->
+            </div>
+        </section>
+
+        <!-- Template for Modals -->
+        <div id="modal-overlay" class="hidden">
+            <div class="modal glass">
+                <h3 id="modal-title">Forge New Ritual</h3>
+                <div class="form-group">
+                    <label>Ritual Name</label>
+                    <input type="text" id="habit-name" placeholder="e.g. Morning Bio-Stretch">
+                </div>
+                <div class="form-group">
+                    <label>Sustainability Check (The "Tiny" Version for Low Energy)</label>
+                    <input type="text" id="habit-sustainable" placeholder="e.g. Just 30 seconds">
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Energy Required</label>
+                        <select id="habit-energy">
+                            <option value="low">Low Battery</option>
+                            <option value="med" selected>Steady Flow</option>
+                            <option value="high">Hyperfocus</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Reward Essence</label>
+                        <input type="number" id="habit-reward" value="5">
+                    </div>
+                </div>
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="habit-micro">
+                    <label for="habit-micro">Is this a Micro-Ritual? (ADHD Quick Win)</label>
+                </div>
+                <div class="modal-actions">
+                    <button id="save-ritual-btn" class="primary-btn">Forge Ritual</button>
+                    <button id="close-modal-btn" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Todo Modal -->
+        <div id="todo-modal-overlay" class="hidden">
+            <div class="modal glass small">
+                <h3>New Daily Focus</h3>
+                <div class="form-group">
+                    <label>Task Title</label>
+                    <input type="text" id="todo-title" placeholder="e.g. Drink 1L Water">
+                </div>
+                <div class="modal-actions">
+                    <button id="save-todo-btn" class="primary-btn">Add Focus</button>
+                    <button id="close-todo-modal-btn" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="dopamine-canvas"></canvas>
+    <script src="{% static 'js/particles.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
