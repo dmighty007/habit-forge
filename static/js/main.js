@@ -495,9 +495,7 @@ class HabitForge {
             }
         });
 
-        document.getElementById('water-tree-btn')?.addEventListener('click', () => {
-            this.waterTree();
-        });
+
         document.getElementById('start-healthy-week-btn')?.addEventListener('click', () => {
             this.initHealthyWeek();
         });
@@ -627,23 +625,15 @@ class HabitForge {
                 body: JSON.stringify({ content })
             });
             // Water the tree
-            await this.waterTree();
-            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
-            document.getElementById('gratitude-seed-input').value = '';
-        } catch (error) {
-            console.error('Watering failed:', error);
-        }
-    }
-
-    async waterTree() {
-        try {
             const response = await fetch('/api/tree/water/', { method: 'POST' });
             if (response.ok) {
                 await this.loadData();
                 this.render();
             }
+            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
+            document.getElementById('gratitude-seed-input').value = '';
         } catch (error) {
-            console.error('Failed to water tree:', error);
+            console.error('Watering failed:', error);
         }
     }
 
@@ -754,9 +744,7 @@ class HabitForge {
         }
     }
 
-    async waterTree() {
-        // Handled via confirmWaterTree now
-    }
+
 
     render() {
         try {
