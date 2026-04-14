@@ -184,12 +184,21 @@
                     <div class="section-header">
                         <div class="title-group">
                             <h2>🦾 Kinetics Mode</h2>
-                            <p class="suggestion">Physical hypertrophy rituals for young underweight frames.</p>
+                            <p class="suggestion">Research-backed hypertrophy for your frame.</p>
                         </div>
-                        <div class="mode-toggle glass">
-                            <button class="mode-btn active" id="mode-daily" onclick="window.app.setKineticsMode('daily')">Daily</button>
-                            <button class="mode-btn" id="mode-campaign" onclick="window.app.setKineticsMode('campaign')">🌟 Journey</button>
+                        <div class="header-actions">
+                            <button class="secondary-btn small" onclick="window.app.toggleDietNotes()">🥗 Nutrition</button>
+                            <div class="mode-toggle glass">
+                                <button class="mode-btn active" id="mode-daily" onclick="window.app.setKineticsMode('daily')">Daily</button>
+                                <button class="mode-btn" id="mode-campaign" onclick="window.app.setKineticsMode('campaign')">🌟 Journey</button>
+                            </div>
                         </div>
+                    </div>
+
+                    <div id="diet-notes-panel" class="glass hidden" style="margin-bottom: 20px; padding:15px; border-left: 4px solid var(--sun);">
+                        <h3>🥗 Nutritional Synergy</h3>
+                        <p id="diet-text" class="small"></p>
+                        <p id="progression-text" class="small muted" style="margin-top:10px;"></p>
                     </div>
                     
                     <div class="kinetics-grid" id="kinetics-grid">
@@ -198,8 +207,16 @@
 
                     <div id="campaign-view" class="campaign-container hidden">
                         <div class="mission-header glass">
-                            <h3 id="current-mission-title">Level 1: Activate the Engine</h3>
-                            <p id="current-mission-objective" class="muted small"></p>
+                            <div class="mission-vitals">
+                                <h3 id="current-mission-title">Level 1: Activate the Engine</h3>
+                                <p id="current-mission-objective" class="muted small"></p>
+                            </div>
+                            <div id="mission-3d-wrap" class="glass">
+                                <canvas id="kinetics-3d-canvas"></canvas>
+                                <div id="mission-timer-overlay" class="hidden">
+                                    <span id="timer-display">00:00</span>
+                                </div>
+                            </div>
                             <div class="progress-bar-wrap">
                                 <div class="progress-bar" id="mission-progress" style="width: 0%"></div>
                             </div>
@@ -337,8 +354,10 @@
         </div>
     </div>
     <canvas id="dopamine-canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="{% static 'js/particles.js' %}"></script>
     <script src="{% static 'js/kinetics_data.js' %}"></script>
+    <script src="{% static 'js/kinetics_3d.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

@@ -1,221 +1,413 @@
 window.KINETICS_CAMPAIGN = [
     {
         level: 1,
-        title: "Level 1: Activate the Engine",
-        objective: "Wake up your muscle fibers with fundamental compound movements.",
-        microHabit: "2-minute version: 5 squats + 5 wall push-ups.",
-        energyModel: "Streak-Safe: Recovery days built-in. Momentum is key, not perfection.",
+        title: "Day 1: Full Body Start",
+        objective: "Activate major muscle groups with a balanced foundational circuit.",
+        microHabit: "2-minute version: 5 Push-ups + 10 Squats.",
         exercises: [
             {
-                id: "ex1_1",
-                name: "Compound Push-ups",
-                sets: "3 sets of 8-12",
+                id: "d1_1",
+                name: "Push-ups",
+                sets: "3 sets of 6-8",
                 rest: "60s",
-                instruction: "Start in plank, lower chest to floor, push back up.",
-                cue: "Imagine pushing the floor away from you.",
-                easier: "Wall Push-ups / Knee Push-ups",
-                harder: "Slow eccentric (3s down) Push-ups",
+                instruction: "Plank position, lower chest to floor, push back up.",
+                cue: "Push the world away.",
+                easier: "Wall Push-ups",
+                harder: "Slow eccentric (3s down)",
                 xp: 50,
                 essence: 15,
-                ui: {
-                    particles: "blue_aura",
-                    motion: "pulse",
-                    color: "#4FC3F7"
-                },
-                feedback: "UPPER BODY INITIALIZED. LOGGED."
+                anim: "pushup",
+                ui: { particles: "blue_aura", color: "#4FC3F7" }
             },
             {
-                id: "ex1_2",
-                name: "Foundation Squats",
-                sets: "3 sets of 15",
+                id: "d1_2",
+                name: "Bodyweight Squats",
+                sets: "3 sets of 10-12",
                 rest: "60s",
-                instruction: "Feet shoulder-width, sit back into hips, keep chest up.",
-                cue: "Sit back like into a phantom chair.",
-                easier: "Box Squats (sit on chair and stand up)",
-                harder: "Jump Squats",
+                instruction: "Sit back into hips, keep chest high, feet flat.",
+                cue: "Sit into a phantom chair.",
+                easier: "Chair Sit-to-Stands",
+                harder: "Squat Hold at bottom",
                 xp: 50,
                 essence: 15,
-                ui: {
-                    particles: "yellow_sparks",
-                    motion: "bounce",
-                    color: "#FFF176"
-                },
-                feedback: "FOUNDATION STABILIZED. MOMENTUM +1."
+                anim: "squat",
+                ui: { particles: "yellow_sparks", color: "#FFF176" }
+            },
+            {
+                id: "d1_3",
+                name: "Plank",
+                sets: "3 sets of 20s",
+                rest: "45s",
+                instruction: "Hold straight line from head to heels on elbows.",
+                cue: "Squeeze everything hard.",
+                easier: "Knee Plank",
+                harder: "Plank Shoulder Taps",
+                xp: 40,
+                essence: 10,
+                anim: "plank",
+                ui: { particles: "green_shield", color: "#81C784" }
+            },
+            {
+                id: "d1_4",
+                name: "Jumping Jacks",
+                sets: "2 sets of 30s",
+                rest: "30s",
+                instruction: "Jump feet out and hands up together.",
+                cue: "Stay light on your feet.",
+                easier: "Stepping Jacks",
+                harder: "Star Jumps",
+                xp: 30,
+                essence: 5,
+                anim: "jacks",
+                ui: { particles: "orange_flare", color: "#FFB74D" }
             }
         ]
     },
     {
         level: 2,
-        title: "Level 2: The Core Bridge",
-        objective: "Establish a stable platform for heavy recruitment.",
-        microHabit: "2-minute version: 30s plank + 10 glute bridges.",
+        title: "Day 2: Upper Body Focus",
+        objective: "Target push-pull movements to build upper body volume.",
+        microHabit: "2-minute version: 10 Incline Push-ups.",
         exercises: [
             {
-                id: "ex2_1",
-                name: "Core Plank",
-                sets: "3 sets of 30-45s",
-                rest: "45s",
-                instruction: "Elbows under shoulders, body straight as a line.",
-                cue: "Squeeze your glutes like you are holding a coin.",
-                easier: "Knee Plank",
-                harder: "Single leg Plank",
-                xp: 40,
-                essence: 10,
-                ui: {
-                    particles: "green_shield",
-                    motion: "glow",
-                    color: "#81C784"
-                },
-                feedback: "STABILITY OVERRIDE SUCCESSFUL."
+                id: "d2_1",
+                name: "Incline Push-ups",
+                sets: "3 sets of 8-10",
+                rest: "60s",
+                instruction: "Hands on a table or sofa, perform push-up.",
+                cue: "Elbows at 45 degrees.",
+                easier: "Wall Push-ups",
+                harder: "Standard Push-ups",
+                xp: 50,
+                essence: 15,
+                anim: "pushup_incline",
+                ui: { particles: "blue_beams", color: "#00E5FF" }
             },
             {
-                id: "ex2_2",
-                name: "Glute Bridges",
-                sets: "3 sets of 15",
+                id: "d2_2",
+                name: "Chair Dips",
+                sets: "3 sets of 6-8",
+                rest: "60s",
+                instruction: "Hands on chair edge, lower and push back up.",
+                cue: "Keep back close to the chair.",
+                easier: "Bent knee Dips",
+                harder: "Straight leg Dips",
+                xp: 50,
+                essence: 15,
+                anim: "dips",
+                ui: { particles: "cyan_pulse", color: "#18FFFF" }
+            },
+            {
+                id: "d2_3",
+                name: "Rows (Band/Dumbbell)",
+                sets: "3 sets of 10",
+                rest: "60s",
+                instruction: "Pull weight/band toward your hip, squeeze blade.",
+                cue: "Elbow to the ceiling.",
+                easier: "Single arm supported row",
+                harder: "Slow tempo (3s pull)",
+                xp: 50,
+                essence: 15,
+                anim: "row",
+                ui: { particles: "purple_void", color: "#E040FB" }
+            },
+            {
+                id: "d2_4",
+                name: "Bicep Curls",
+                sets: "3 sets of 10",
                 rest: "45s",
-                instruction: "Lie on back, feet flat, lift hips toward ceiling.",
-                cue: "Drive through your heels.",
-                easier: "Lying floor press",
-                harder: "Single leg bridge",
+                instruction: "Curl weight toward shoulders, slow on way down.",
+                cue: "Don't swing your elbows.",
+                easier: "Lighter weight",
+                harder: "Hammer curls",
                 xp: 40,
                 essence: 10,
-                ui: {
-                    particles: "purple_void",
-                    motion: "float",
-                    color: "#BA68C8"
-                },
-                feedback: "POSTERIOR CHAIN ACTIVATED."
+                anim: "curl",
+                ui: { particles: "pink_glow", color: "#FF4081" }
             }
         ]
     },
     {
         level: 3,
-        title: "Level 3: Kinetic Flow",
-        objective: "Lower body mastery and unilateral stability.",
-        microHabit: "2-minute version: 10 reverse lunges.",
+        title: "Day 3: Legs and Core",
+        objective: "Focus on lower body hypertrophy and deep core tension.",
+        microHabit: "2-minute version: 10 Glute Bridges.",
         exercises: [
             {
-                id: "ex3_1",
-                name: "Reverse Lunges",
-                sets: "3 sets of 10 per leg",
+                id: "d3_1",
+                name: "Lunges",
+                sets: "3 sets of 8 each leg",
                 rest: "60s",
-                instruction: "Step back, drop back knee toward floor, return.",
-                cue: "Keep your chest proud and core tight.",
-                easier: "Assisted Lunges (hold a wall)",
-                harder: "Bulgarian Split Squats",
+                instruction: "Step forward, drop back knee, return to center.",
+                cue: "Stay balanced and upright.",
+                easier: "Reverse Lunges (easier on knees)",
+                harder: "Deficit Lunges",
                 xp: 60,
                 essence: 20,
-                ui: {
-                    particles: "orange_flare",
-                    motion: "slide",
-                    color: "#FFB74D"
-                },
-                feedback: "BALANCE CALIBRATED."
+                anim: "lunge",
+                ui: { particles: "gold_dust", color: "#FFD700" }
+            },
+            {
+                id: "d3_2",
+                name: "Glute Bridge",
+                sets: "3 sets of 12",
+                rest: "45s",
+                instruction: "Lie on back, lift hips high, squeeze glutes.",
+                cue: "Drive through your heels.",
+                easier: "Narrow stance bridge",
+                harder: "Single leg bridge",
+                xp: 40,
+                essence: 10,
+                anim: "bridge",
+                ui: { particles: "peach_bloom", color: "#FF8A65" }
+            },
+            {
+                id: "d3_3",
+                name: "Calf Raises",
+                sets: "3 sets of 15",
+                rest: "30s",
+                instruction: "Stand on toes, hold 1s, lower slowly.",
+                cue: "Go as high as possible.",
+                easier: "Seated calf raises",
+                harder: "Single leg calf raises",
+                xp: 30,
+                essence: 5,
+                anim: "calf_raise",
+                ui: { particles: "silver_mist", color: "#BDBDBD" }
+            },
+            {
+                id: "d3_4",
+                name: "Leg Raises",
+                sets: "3 sets of 10",
+                rest: "60s",
+                instruction: "Lie on back, lift legs toward sky, lower slowly.",
+                cue: "Keep your lower back flat on floor.",
+                easier: "Bent knee tucks",
+                harder: "Straight leg raises",
+                xp: 50,
+                essence: 15,
+                anim: "leg_raise",
+                ui: { particles: "emerald_flash", color: "#00C853" }
             }
         ]
     },
     {
         level: 4,
-        title: "Level 4: Upper Volume",
-        objective: "Direct attention to shoulders and triceps.",
-        microHabit: "2-minute version: 5 chair dips.",
+        title: "Day 4: Recovery and Mobility",
+        objective: "Active recovery to allow muscle repair and weight gain.",
+        microHabit: "2-minute version: 5 deep breaths + 1 stretch.",
         exercises: [
             {
-                id: "ex4_1",
-                name: "Chair Dips",
-                sets: "3 sets of 10-12",
-                rest: "60s",
-                instruction: "Hands on chair edge, lower body, push back up.",
-                cue: "Keep your back close to the chair.",
-                easier: "Floor Tricep Extensions",
-                harder: "Feet elevated Dips",
-                xp: 50,
-                essence: 15,
-                ui: {
-                    particles: "neon_beams",
-                    motion: "recoil",
-                    color: "#00E5FF"
-                },
-                feedback: "TRICEPS COMPROMISED. REPAIRING..."
+                id: "d4_1",
+                name: "Full Body Stretching",
+                sets: "10-15 min",
+                rest: "N/A",
+                instruction: "Move through gentle neck, shoulder, and hip stretches.",
+                cue: "Relax into the pull.",
+                easier: "Seated stretches",
+                harder: "Deep hold (30s+)",
+                xp: 40,
+                essence: 10,
+                anim: "stretch",
+                ui: { particles: "zen_circles", color: "#81D4FA" }
+            },
+            {
+                id: "d4_2",
+                name: "Light Walking",
+                sets: "15-20 min",
+                rest: "N/A",
+                instruction: "A gentle stroll to keep blood flowing.",
+                cue: "Focus on your surroundings.",
+                easier: "5 min walk",
+                harder: "Brisk pace",
+                xp: 30,
+                essence: 5,
+                anim: "walk",
+                ui: { particles: "leaf_drift", color: "#AED581" }
+            },
+            {
+                id: "d4_3",
+                name: "Deep Breathing",
+                sets: "5 min",
+                rest: "N/A",
+                instruction: "Breathe in 4s, hold 4s, out 4s.",
+                cue: "Breathe into your belly.",
+                easier: "2 min session",
+                harder: "10 min session",
+                xp: 40,
+                essence: 20,
+                anim: "breathe",
+                ui: { particles: "cloud_wisps", color: "#E1F5FE" }
             }
         ]
     },
     {
         level: 5,
-        title: "Level 5: The Power Prime",
-        objective: "Dynamic recruitment for weight gain support.",
-        microHabit: "2-minute version: 10 power squats.",
+        title: "Day 5: Full Body Progression",
+        objective: "Slightly increase intensity to trigger hypertrophy.",
+        microHabit: "2-minute version: 5 Squat Jumps.",
         exercises: [
             {
-                id: "ex5_1",
-                name: "Squat-to-Overhead",
-                sets: "3 sets of 12 (no weights needed)",
+                id: "d5_1",
+                name: "Push-ups",
+                sets: "3 sets of 8-10",
                 rest: "60s",
-                instruction: "Squat down, as you stand, reach hands to sky.",
-                cue: "Reach for the stars on the way up.",
-                easier: "Standard Squats",
-                harder: "Jump Squats with reach",
+                instruction: "Standard push-ups with focus on form.",
+                cue: "Stiff as a board.",
+                easier: "Incline push-ups",
+                harder: "Diamond push-ups",
+                xp: 60,
+                essence: 20,
+                anim: "pushup",
+                ui: { particles: "lava_flow", color: "#FF5252" }
+            },
+            {
+                id: "d5_2",
+                name: "Squat Jumps",
+                sets: "3 sets of 6-8",
+                rest: "60s",
+                instruction: "Squat down, explode up, land softly.",
+                cue: "Land like a cat.",
+                easier: "Power Squats (no jump)",
+                harder: "Tuck Jumps",
                 xp: 70,
                 essence: 25,
-                ui: {
-                    particles: "gold_dust",
-                    motion: "expansion",
-                    color: "#FFD54F"
-                },
-                feedback: "POWER LEVELS CRITICAL. GAINS DETECTED."
+                anim: "jump_squat",
+                ui: { particles: "thunder_bolt", color: "#FFD600" }
+            },
+            {
+                id: "d5_3",
+                name: "Plank Shoulder Taps",
+                sets: "3 sets of 10 per side",
+                rest: "45s",
+                instruction: "In high plank, tap opposite shoulder.",
+                cue: "Stop your hips from rocking.",
+                easier: "Plank hold",
+                harder: "Plank Reach",
+                xp: 50,
+                essence: 15,
+                anim: "plank_taps",
+                ui: { particles: "matrix_code", color: "#64DD17" }
+            },
+            {
+                id: "d5_4",
+                name: "Mountain Climbers",
+                sets: "3 sets of 20s",
+                rest: "45s",
+                instruction: "In plank, drive knees toward chest fast.",
+                cue: "Running against the floor.",
+                easier: "Slow march",
+                harder: "Spider climbers",
+                xp: 50,
+                essence: 15,
+                anim: "climber",
+                ui: { particles: "comet_tail", color: "#FF6D00" }
             }
         ]
     },
     {
         level: 6,
-        title: "Level 6: Full Body Sync",
-        objective: "Coordinating all systems for maximum metabolic impact.",
-        microHabit: "2-minute version: 5 burpees (no jump).",
+        title: "Day 6: Strength and Control",
+        objective: "Slow down the movements for maximum tension and time-under-load.",
+        microHabit: "2-minute version: 3 Slow Push-ups.",
         exercises: [
             {
-                id: "ex6_1",
-                name: "Dynamic Inchworms",
-                sets: "3 sets of 8",
-                rest: "60s",
-                instruction: "Fold forward, walk hands to plank, walk back.",
-                cue: "Stretch your hamstrings as you walk.",
-                easier: "Standard Plank",
-                harder: "Inchworm with Push-up",
+                id: "d6_1",
+                name: "Slow Push-ups",
+                sets: "3 sets of 5-6",
+                rest: "90s",
+                instruction: "3 seconds down, 1 second hold, 1 second up.",
+                cue: "Feel the burn.",
+                easier: "Slow wall push-ups",
+                harder: "Slow diamond push-ups",
+                xp: 70,
+                essence: 30,
+                anim: "pushup_slow",
+                ui: { particles: "ice_shards", color: "#40C4FF" }
+            },
+            {
+                id: "d6_2",
+                name: "Slow Squats",
+                sets: "3 sets of 10",
+                rest: "90s",
+                instruction: "3 seconds down, 1 second hold, 1 second up.",
+                cue: "Control the descent.",
+                easier: "Slow box squats",
+                harder: "Slow pause squats",
                 xp: 60,
+                essence: 25,
+                anim: "squat_slow",
+                ui: { particles: "glacial_mist", color: "#E1F5FE" }
+            },
+            {
+                id: "d6_3",
+                name: "Wall Sit",
+                sets: "3 sets of 30s",
+                rest: "60s",
+                instruction: "Sit against a wall, thighs parallel to floor.",
+                cue: "Steady as a mountain.",
+                easier: "High wall sit",
+                harder: "Single leg wall sit",
+                xp: 50,
                 essence: 20,
-                ui: {
-                    particles: "rainbow_wave",
-                    motion: "flow",
-                    color: "#FF8A65"
-                },
-                feedback: "SYSTEM SYNC 100%."
+                anim: "wall_sit",
+                ui: { particles: "stone_crush", color: "#9E9E9E" }
+            },
+            {
+                id: "d6_4",
+                name: "Side Plank",
+                sets: "2 sets of 20s per side",
+                rest: "45s",
+                instruction: "Prop yourself on one elbow, body straight.",
+                cue: "Lifting those hips high.",
+                easier: "Knee side plank",
+                harder: "Side plank dips",
+                xp: 50,
+                essence: 20,
+                anim: "side_plank",
+                ui: { particles: "plasma_field", color: "#AA00FF" }
             }
         ]
     },
     {
         level: 7,
-        title: "Level 7: The Ascension",
-        objective: "Celebration of consistency. Peak performance test.",
-        microHabit: "2-minute version: 2 rounds of: 5 squats, 5 push-ups, 5 bridges.",
+        title: "Day 7: Light and Fun Activity",
+        objective: "Keep the momentum without high stress. Have fun!",
+        microHabit: "2-minute version: 1 minute of dancing.",
         exercises: [
             {
-                id: "ex7_1",
-                name: "The Guardian Circuit",
-                sets: "2 rounds of: 10 Pushups, 10 Squats, 20s Plank",
-                rest: "90s",
-                instruction: "Perform all movements back-to-back.",
-                cue: "Finishing strong. No rush, just flow.",
-                easier: "1 round only",
-                harder: "3 rounds",
-                xp: 150,
-                essence: 50,
-                ui: {
-                    particles: "supernova",
-                    motion: "vibrate",
-                    color: "#FF4081"
-                },
-                feedback: "CONGRATULATIONS. YOU ARE NOW A BIO-FORGE VETERAN."
+                id: "d7_1",
+                name: "Free Movement (Jog/Skip/Dance)",
+                sets: "15-20 min",
+                rest: "N/A",
+                instruction: "Choose any light activity you enjoy.",
+                cue: "Just keep moving.",
+                easier: "5 min session",
+                harder: "Skill training",
+                xp: 100,
+                essence: 40,
+                anim: "dance",
+                ui: { particles: "confetti", color: "#FF4081" }
+            },
+            {
+                id: "d7_2",
+                name: "Easy Stretching",
+                sets: "5-10 min",
+                rest: "N/A",
+                instruction: "Gentle stretches to close the week.",
+                cue: "Thank your body.",
+                easier: "3 min session",
+                harder: "Yogic holds",
+                xp: 40,
+                essence: 10,
+                anim: "stretch_easy",
+                ui: { particles: "stardust", color: "#FFF9C4" }
             }
         ]
     }
 ];
+
+window.KINETICS_META = {
+    progression: "Increase reps slightly each week or add one extra set when it feels easier.",
+    diet: "Eat more calories than you burn. Include milk, eggs, bananas, rice/roti, and peanuts daily. Aim for consistent meals and protein intake."
+};

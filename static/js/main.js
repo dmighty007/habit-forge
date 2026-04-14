@@ -61,6 +61,9 @@ class HabitForge {
         };
         this.exercisePresets = [];
         this.kineticsMode = 'daily';
+        this.kinetics3D = null;
+        this.missionTimer = null;
+        this.missionTimeRemaining = 0;
         this.currentMissionIndex = parseInt(localStorage.getItem('hf-kinetics-level')) || 0;
         this.completedMissionExercises = JSON.parse(localStorage.getItem('hf-kinetics-done') || '[]');
         this.currentState = 'med';
@@ -1000,6 +1003,27 @@ class HabitForge {
         document.getElementById('mode-daily').classList.toggle('active', mode === 'daily');
         document.getElementById('mode-campaign').classList.toggle('active', mode === 'campaign');
         this.renderKinetics();
+
+        if (mode === 'campaign') {
+            setTimeout(() => this.initKinetics3D(), 100);
+        }
+    }
+
+    initKinetics3D() {
+        if (!this.kinetics3D) {
+            this.kinetics3D = new window.Kinetics3D('kinetics-3d-canvas');
+        }
+    }
+
+    toggleDietNotes() {
+        const panel = document.getElementById('diet-notes-panel');
+        if (panel) {
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                document.getElementById('diet-text').textContent = window.KINETICS_META.diet;
+                document.getElementById('progression-text').textContent = `Note: ${window.KINETICS_META.progression}`;
+            }
+        }
     }
 
     switchTab(tabId) {
@@ -1074,11 +1098,14 @@ class HabitForge {
                         <div class="xp-reward">+${ex.xp} XP</div>
                         ${isDone ? 
                             '<span class="badge secondary">SUCCESS</span>' : 
-                            `<button class="action-trigger-btn" onclick="window.app.completeMissionExercise('${ex.id}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}')">START</button>`
+                            `<div class="btn-group-v">
+                                <button class="action-trigger-btn" onclick="window.app.startMissionExercise('${ex.id}', '${ex.anim}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}', 30)">START</button>
+                                <button class="minimal-btn tiny" onclick="window.app.completeMissionExercise('${ex.id}', '${ex.name}', ${ex.xp / 2}, ${ex.essence / 2}, '${ex.ui.color}', true)">Minimal Version</button>
+                            </div>`
                         }
                     </div>
                     <div class="alt-options tiny">
-                        <span>Alt: ${ex.easier} (Half XP)</span>
+                        <span>Alt: ${ex.easier}</span>
                     </div>
                 </div>
             `;
@@ -1095,30 +1122,69 @@ class HabitForge {
         }
     }
 
-    async completeMissionExercise(id, name, xp, essence, color) {
+    async completeMissionExercise(id, name, xp, essence, color, isMinimal = false) {
         if (this.completedMissionExercises.includes(id)) return;
         
         try {
             const resp = await fetch('/api/exercises/complete/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: `Mission: ${name}`, reward: essence })
+                body: JSON.stringify({ name: (isMinimal ? "Minimal: " : "Mission: ") + name, reward: essence })
             });
 
             if (resp.ok) {
                 this.completedMissionExercises.push(id);
                 localStorage.setItem('hf-kinetics-done', JSON.stringify(this.completedMissionExercises));
                 
-                this.showToast(`✨ ${xp} XP GAINED. ${name} SYNCED.`, 'info');
+                const msg = isMinimal ? `✨ ${xp} XP (Minimal Sync). Build that habit!` : `✨ ${xp} XP GAINED. ${name} SYNCED.`;
+                this.showToast(msg, isMinimal ? 'info' : 'success');
+                
                 if (window.particles) {
                     window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, color);
                 }
                 
-                // Track focus/xp locally for UI feedback
                 this.data.focusPoints += Math.floor(xp / 10);
                 this.render();
+                this.stopMissionExercise();
             }
         } catch (e) { console.error(e); }
+    }
+
+    startMissionExercise(id, anim, name, xp, essence, color, seconds) {
+        if (this.kinetics3D) {
+            this.kinetics3D.setAnimation(anim);
+        }
+
+        // Show Timer
+        const timerWrap = document.getElementById('mission-timer-overlay');
+        if (timerWrap) timerWrap.classList.remove('hidden');
+
+        this.missionTimeRemaining = seconds;
+        this.updateTimerDisplay();
+
+        if (this.missionTimer) clearInterval(this.missionTimer);
+        this.missionTimer = setInterval(() => {
+            this.missionTimeRemaining--;
+            this.updateTimerDisplay();
+            if (this.missionTimeRemaining <= 0) {
+                clearInterval(this.missionTimer);
+                this.completeMissionExercise(id, name, xp, essence, color);
+            }
+        }, 1000);
+    }
+
+    stopMissionExercise() {
+        if (this.missionTimer) clearInterval(this.missionTimer);
+        document.getElementById('mission-timer-overlay')?.classList.add('hidden');
+        if (this.kinetics3D) this.kinetics3D.setAnimation(null);
+    }
+
+    updateTimerDisplay() {
+        const el = document.getElementById('timer-display');
+        if (!el) return;
+        const mins = Math.floor(this.missionTimeRemaining / 60);
+        const secs = this.missionTimeRemaining % 60;
+        el.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     advanceMission() {
