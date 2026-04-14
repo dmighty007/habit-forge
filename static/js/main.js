@@ -1151,6 +1151,9 @@ class HabitForge {
     }
 
     startMissionExercise(id, anim, name, xp, essence, color, seconds) {
+        if (!this.kinetics3D) {
+            this.initKinetics3D();
+        }
         if (this.kinetics3D) {
             this.kinetics3D.setAnimation(anim);
         }
@@ -1159,7 +1162,7 @@ class HabitForge {
         const timerWrap = document.getElementById('mission-timer-overlay');
         if (timerWrap) timerWrap.classList.remove('hidden');
 
-        this.missionTimeRemaining = seconds;
+        this.missionTimeRemaining = parseInt(seconds) || 30;
         this.updateTimerDisplay();
 
         if (this.missionTimer) clearInterval(this.missionTimer);

@@ -10,7 +10,8 @@ class Kinetics3D {
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(45, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: false, antialias: true });
+        this.renderer.setClearColor(0x0a0a0f, 1);
         
         this.initScene();
         this.createMannequin();
