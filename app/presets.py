@@ -48,3 +48,13 @@ DAILY_QUEST_POOL = [
     {"title": "Sky Look", "desc": "Look at the sky for 30 seconds to reset vision", "category": "health"},
     {"title": "Kind Reply", "desc": "Send a short message of appreciation to someone", "category": "social"},
 ]
+
+# Physical Kinetics - Hypertrophy and Strength focus (Underweight Support)
+EXERCISE_PRESETS = [
+    {"name": "Compound Push-ups", "sustainable": "3 wide push-ups on knees/toes", "energy": "high", "reward": 15, "icon": "💪", "desc": "Targets chest, shoulders, and triceps. Great for upper body volume."},
+    {"name": "Foundation Squats", "sustainable": "5 deep air squats", "energy": "med", "reward": 12, "icon": "🦵", "desc": "Full lower body engagement. Essential for leg hypertrophy."},
+    {"name": "Reverse Lunges", "sustainable": "4 lunges (2 per leg)", "energy": "high", "reward": 15, "icon": "🚶", "desc": "Focuses on stability and leg strength without heavy joint stress."},
+    {"name": "Chair Dips", "sustainable": "3 slow dips on a chair", "energy": "med", "reward": 10, "icon": "🪑", "desc": "Isolated tricep and shoulder work for upper body definition."},
+    {"name": "Core Plank", "sustainable": "Hold plank for 15 seconds", "energy": "low", "reward": 8, "icon": "🧱", "desc": "Deep core stability. Keeps you aligned for other compound movements."},
+    {"name": "Glute Bridges", "sustainable": "5 hip thrusts on floor", "energy": "low", "reward": 8, "icon": "🍑", "desc": "Targets the posterior chain safely. Great for posture."},
+]

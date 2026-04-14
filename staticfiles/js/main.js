@@ -71,23 +71,30 @@ class HabitForge {
         this.currentAudioKey = null;
         this.currentAudioGenre = null;
         
-        // Audio Library - Extremely Reliable 24/7 HTTPS Streams
+        // Audio Library
         this.AUDIO_LIBRARY = {
-            'piano': 'https://stream.srg-ssr.ch/m/rsc_de/mp3_128', 
-            'violin': 'https://strm112.1.fm/baroque_mobile_mp3', 
-            'classical': 'https://strm112.1.fm/classical_mobile_mp3',
-            'lofi': 'https://streams.ilovemusic.de/iloveradio17.mp3', 
-            'ambient': 'https://ice1.somafm.com/spacestation-128-mp3', 
-            'drone': 'https://ice1.somafm.com/dronezone-128-mp3'
+            'lofi': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+            ],
+            'nature': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+            ],
+            'focus': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
+            ],
+            'celestial': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
+            ]
         };
-
-        // Inject Toast styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-            @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        `;
-        document.head.appendChild(style);
 
         this.init();
     }
@@ -105,46 +112,24 @@ class HabitForge {
 
     restoreTheme() {
         const saved = localStorage.getItem('hf-theme');
-        if (saved === 'brutal') document.body.classList.add('brutal');
-        if (saved === 'glitch') document.body.classList.add('glitch');
+        if (saved === 'brutal') {
+            document.body.classList.add('brutal');
+        }
         this.updateThemeButton();
     }
 
     toggleTheme() {
-        const hasGlitch = this.data && this.data.rewards && this.data.rewards.find(r => r.name === 'Glitch Theme' && r.unlocked);
-        
-        let current = localStorage.getItem('hf-theme') || 'cheerful';
-        let next = 'cheerful';
-        
-        if (current === 'cheerful') {
-            next = 'brutal';
-        } else if (current === 'brutal') {
-            next = hasGlitch ? 'glitch' : 'cheerful';
-        } else if (current === 'glitch') {
-            next = 'cheerful';
-        }
-
-        document.body.classList.remove('brutal', 'glitch');
-        if (next !== 'cheerful') document.body.classList.add(next);
-        
-        localStorage.setItem('hf-theme', next);
+        document.body.classList.toggle('brutal');
+        const isBrutal = document.body.classList.contains('brutal');
+        localStorage.setItem('hf-theme', isBrutal ? 'brutal' : 'cheerful');
         this.updateThemeButton();
     }
 
     updateThemeButton() {
         const btn = document.getElementById('theme-toggle');
         if (!btn) return;
-        const saved = localStorage.getItem('hf-theme');
-        if (saved === 'glitch') {
-            btn.textContent = '👾 Glitch';
-            btn.className = 'primary-btn pulse'; // Extra styling for glitch
-        } else if (saved === 'brutal') {
-            btn.textContent = '🔥 Brutal';
-            btn.className = 'secondary-btn';
-        } else {
-            btn.textContent = '☀️ Cheerful';
-            btn.className = 'secondary-btn';
-        }
+        const isBrutal = document.body.classList.contains('brutal');
+        btn.textContent = isBrutal ? '🔥 Brutal' : '☀️ Cheerful';
     }
 
     // ─── FORTUNE COOKIE ───
@@ -403,27 +388,46 @@ class HabitForge {
 
     // ─── AMBIENT AUDIO ───
     toggleAudio(genre) {
-        if (this.currentAudio && this.currentAudioGenre === genre && !this.currentAudio.paused) {
-            this.currentAudio.pause();
-            document.getElementById('toggle-audio-btn').textContent = '🎵 Play Stream';
+        // Toggle biome selection (does NOT play — that happens on timer start)
+        if (this.currentAudioGenre === genre) {
+            // Deselect
+            this.currentAudioGenre = null;
+            if (this.currentAudio) {
+                this.currentAudio.pause();
+                this.currentAudio = null;
+            }
         } else {
+            // Select new genre
             this.currentAudioGenre = genre;
-            this.playAudioForGenre(genre);
-            const btn = document.getElementById('toggle-audio-btn');
-            if (btn) btn.textContent = '⏸ Pause Stream';
+            // If timer is already running, switch audio immediately
+            if (this.timerRunning) {
+                this.playAudioForGenre(genre);
+            }
         }
+
+        document.querySelectorAll('.biome-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.audio === this.currentAudioGenre);
+        });
     }
 
     playAudioForGenre(genre) {
         if (this.currentAudio) this.currentAudio.pause();
 
-        const streamUrl = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['lofi'];
-        
-        this.currentAudio = new Audio(streamUrl);
-        this.currentAudio.play().catch(e => {
-            console.warn("Audio playback blocked/failed:", e);
-            this.showToast('Audio blocked by browser. Please interact with the page first.', 'error');
-        });
+        const tracks = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['focus'];
+        let randomTrack;
+
+        if (tracks.length > 1) {
+            do {
+                randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+            } while (randomTrack === this.lastPlayedTrack);
+        } else {
+            randomTrack = tracks[0];
+        }
+
+        this.lastPlayedTrack = randomTrack;
+        this.currentAudio = new Audio(randomTrack);
+        this.currentAudio.loop = true;
+        this.currentAudio.play().catch(e => console.warn("Audio playback blocked:", e));
 
         if (window.particles) {
             window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
@@ -491,7 +495,9 @@ class HabitForge {
             }
         });
 
-
+        document.getElementById('water-tree-btn')?.addEventListener('click', () => {
+            this.waterTree();
+        });
         document.getElementById('start-healthy-week-btn')?.addEventListener('click', () => {
             this.initHealthyWeek();
         });
@@ -518,22 +524,12 @@ class HabitForge {
         document.getElementById('brain-dump')?.addEventListener('input', () => this.saveBrainDump());
 
         // Audio controls
-        document.getElementById('toggle-audio-btn')?.addEventListener('click', () => {
-            const genre = document.getElementById('audio-genre-select').value;
-            this.toggleAudio(genre);
-        });
-        document.getElementById('audio-genre-select')?.addEventListener('change', (e) => {
-            if (this.currentAudio && !this.currentAudio.paused) {
-                this.playAudioForGenre(e.target.value); // switch immediately
-            }
+        document.querySelectorAll('.biome-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.toggleAudio(btn.dataset.audio));
         });
 
         // Gratitude / Water logic
         document.getElementById('water-tree-btn')?.addEventListener('click', () => {
-            if (this.data && this.data.essence < 10) {
-                this.showToast('Not enough ✨ Essence! Complete a ritual or two to water your tree again.', 'error');
-                return;
-            }
             document.getElementById('gratitude-modal-overlay')?.classList.remove('hidden');
             document.getElementById('gratitude-seed-input')?.focus();
         });
@@ -631,15 +627,23 @@ class HabitForge {
                 body: JSON.stringify({ content })
             });
             // Water the tree
+            await this.waterTree();
+            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
+            document.getElementById('gratitude-seed-input').value = '';
+        } catch (error) {
+            console.error('Watering failed:', error);
+        }
+    }
+
+    async waterTree() {
+        try {
             const response = await fetch('/api/tree/water/', { method: 'POST' });
             if (response.ok) {
                 await this.loadData();
                 this.render();
             }
-            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
-            document.getElementById('gratitude-seed-input').value = '';
         } catch (error) {
-            console.error('Watering failed:', error);
+            console.error('Failed to water tree:', error);
         }
     }
 
@@ -750,40 +754,8 @@ class HabitForge {
         }
     }
 
-
-
-    showToast(message, type='info') {
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.style.position = 'fixed';
-            toastContainer.style.bottom = '20px';
-            toastContainer.style.right = '20px';
-            toastContainer.style.zIndex = '9999';
-            toastContainer.style.display = 'flex';
-            toastContainer.style.flexDirection = 'column';
-            toastContainer.style.gap = '10px';
-            document.body.appendChild(toastContainer);
-        }
-        
-        const toast = document.createElement('div');
-        toast.className = `glass`;
-        toast.style.padding = '12px 20px';
-        toast.style.borderRadius = '8px';
-        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        toast.style.borderLeft = type === 'error' ? '4px solid var(--sun)' : '4px solid var(--mint)';
-        toast.style.animation = 'slideInRight 0.3s ease forwards';
-        toast.style.color = 'var(--text)';
-        toast.style.fontWeight = '500';
-        toast.textContent = message;
-        
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'slideOutRight 0.3s ease forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    async waterTree() {
+        // Handled via confirmWaterTree now
     }
 
     render() {
@@ -930,13 +902,6 @@ class HabitForge {
 
     async redeemReward(id) {
         const card = document.getElementById(`reward-${id}`);
-        // Identify the reward based on data
-        let rewardName = '';
-        if (this.data && this.data.rewards) {
-            const rewardObj = this.data.rewards.find(r => r.id === id);
-            if (rewardObj) rewardName = rewardObj.name;
-        }
-
         try {
             const response = await fetch(`/api/rewards/redeem/${id}/`, { method: 'POST' });
             if (response.ok) {
@@ -944,16 +909,6 @@ class HabitForge {
                 if (window.particles) {
                     window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--lavender)');
                 }
-
-                // Specifically handle Glitch Theme activation
-                if (rewardName === 'Glitch Theme') {
-                    document.body.classList.remove('brutal', 'cheerful');
-                    document.body.classList.add('glitch');
-                    localStorage.setItem('hf-theme', 'glitch');
-                    this.updateThemeButton();
-                    this.showToast('👾 SYSTEM COMPROMISED. GLITCH THEME ACTIVATED.', 'info');
-                }
-
                 setTimeout(async () => {
                     await this.loadData();
                     this.render();
@@ -1014,6 +969,31 @@ class HabitForge {
         if (btn.querySelector('.btn-text')) btn.querySelector('.btn-text').textContent = "DONE! 💫";
         const rect = btn.getBoundingClientRect();
         this.completeHabit(id, rect);
+    }
+
+    renderRewards(category) {
+        const rewardList = document.getElementById('reward-list');
+        if (!rewardList) return;
+
+        const filtered = category === 'all' 
+            ? this.data.rewards 
+            : this.data.rewards.filter(r => r.category === category);
+
+        rewardList.innerHTML = (filtered || []).map(r => `
+            <div class="reward-card">
+                <div class="section-header" style="justify-content:space-between;">
+                    <span class="rarity-badge rarity-${r.rarity}">${r.rarity}</span>
+                    <span class="badge secondary small">${r.category}</span>
+                </div>
+                <h3>${r.icon || '🎁'} ${r.name}</h3>
+                <div class="card-actions">
+                    <span>✨ ${r.cost}</span>
+                    <button class="secondary-btn" ${this.data.essence < r.cost || r.unlocked ? 'disabled' : ''}>
+                        ${r.unlocked ? 'Unlocked' : 'Redeem'}
+                    </button>
+                </div>
+            </div>
+        `).join('') || '<p class="muted small">No items in this category.</p>';
     }
 }
 

@@ -149,6 +149,14 @@
             </aside>
 
             <section class="ritual-container">
+                <!-- 🔄 TAB NAVIGATION -->
+                <div class="main-tabs glass">
+                    <button class="main-tab active" data-tab="rituals">🔮 Alchemy</button>
+                    <button class="main-tab" data-tab="kinetics">🦾 Kinetics</button>
+                    <button class="main-tab" data-tab="library">📚 Archives</button>
+                </div>
+
+                <div id="rituals-view" class="tab-view">
                 <!-- 🔮 FORTUNE COOKIE -->
                 <div class="fortune-card glass" id="fortune-card">
                     <span class="fortune-icon">🔮</span>
@@ -169,6 +177,21 @@
                 
                 <div id="habit-list" class="ritual-grid">
                     <!-- Habits will be injected here -->
+                </div>
+
+                </section>
+
+                <div id="kinetics-view" class="tab-view hidden">
+                    <div class="section-header">
+                        <div class="title-group">
+                            <h2>🦾 Kinetics Mode</h2>
+                            <p class="suggestion">Physical hypertrophy rituals for young underweight frames.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kinetics-grid" id="kinetics-grid">
+                        <!-- Exercise cards injected here -->
+                    </div>
                 </div>
 
                 <!-- 📊 LIFE RHYTHM -->

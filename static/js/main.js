@@ -55,10 +55,11 @@ class HabitForge {
             energyLevel: 100,
             focusPoints: 0,
             habits: [],
-            rewards: [],
-            evidence: [],
-            todos: []
+            todos: [],
+            quests: [],
+            rewards: []
         };
+        this.exercisePresets = [];
         this.currentState = 'med';
         // Timer state
         this.timerRunning = false;
@@ -97,6 +98,7 @@ class HabitForge {
         this.restoreBrainDump();
         this.showRandomFortune();
         await this.loadData();
+        await this.fetchExercisePresets();
         this.setupListeners();
         this.restoreImpulseLot();
         this.render();
@@ -559,6 +561,14 @@ class HabitForge {
                 this.renderRewards(pill.dataset.category);
             });
         });
+
+        // Tab Switching
+        document.querySelectorAll('.main-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                this.switchTab(tab);
+            });
+        });
     }
 
     async showRitualLibrary() {
@@ -898,6 +908,7 @@ class HabitForge {
             // Render new features
             this.renderAchievements();
             this.updateTimerDisplay();
+            this.renderKinetics();
         } catch (e) {
             console.error('Render error:', e);
         }
@@ -970,6 +981,71 @@ class HabitForge {
     updateElementText(id, text) {
         const el = document.getElementById(id);
         if (el) el.textContent = text !== undefined ? text : '...';
+    }
+
+    // ─── KINETICS MODULE ───
+    async fetchExercisePresets() {
+        try {
+            const resp = await fetch('/api/presets/exercises/');
+            const data = await resp.json();
+            this.exercisePresets = data.presets || [];
+        } catch (e) { console.error("Kinetics presets failed:", e); }
+    }
+
+    switchTab(tabId) {
+        document.querySelectorAll('.main-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+        document.querySelectorAll('.tab-view').forEach(view => {
+            view.classList.add('hidden');
+        });
+        
+        const targetView = tabId === 'rituals' ? 'rituals-view' : (tabId === 'kinetics' ? 'kinetics-view' : 'library-view');
+        // Note: archives uses the ritual-library-modal logic mostly, but we can treat it as a tab
+        if (tabId === 'library') {
+            document.getElementById('rituals-view').classList.remove('hidden');
+            document.getElementById('ritual-library-modal-overlay')?.classList.remove('hidden');
+        } else {
+            document.getElementById(targetView)?.classList.remove('hidden');
+        }
+    }
+
+    renderKinetics() {
+        const grid = document.getElementById('kinetics-grid');
+        if (!grid) return;
+
+        grid.innerHTML = this.exercisePresets.map(ex => `
+            <div class="reward-card exercise-card">
+                <span class="exercise-icon">${ex.icon}</span>
+                <span class="badge secondary small">${ex.energy} energy</span>
+                <h3>${ex.name}</h3>
+                <p class="exercise-desc">${ex.desc}</p>
+                <div class="card-actions">
+                    <span class="cost">${ex.reward} ✨</span>
+                    <button class="primary-btn small" onclick="window.app.completeExercise('${ex.name}', ${ex.reward})">Done</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async completeExercise(name, reward) {
+        try {
+            const response = await fetch('/api/exercises/complete/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, reward })
+            });
+            if (response.ok) {
+                this.showToast(`🦾 ${name} COMPLETE! Gains detected.`, 'info');
+                if (window.particles) {
+                    window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
+                }
+                await this.loadData();
+                this.render();
+            }
+        } catch (e) {
+            console.error('Kinetics completion failed:', e);
+        }
     }
 
     setupHoldToInitiate() {

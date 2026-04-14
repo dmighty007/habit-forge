@@ -2094,13 +2094,11 @@ body.brutal .state-selector-wrapper .label {
     padding: 20px;
     background: rgba(0, 0, 0, 0.15);
     border-radius: 16px;
-    justify-content: space-between;
+    justify-content: center;
 }
 .rhythm-day {
-    flex: 1 1 14px;
-    min-width: 14px;
-    max-width: 40px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border-radius: 3px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.02);
@@ -2113,23 +2111,10 @@ body.brutal .state-selector-wrapper .label {
 .rhythm-day[data-level="4"] { background: rgba(52, 211, 153, 0.8); }
 .rhythm-day[data-level="5"] { background: var(--mint); box-shadow: 0 0 10px var(--mint-glow); }
 
-body.brutal .rhythm-day { background: transparent; border: 2px solid #111; border-radius: 0; }
-body.brutal .rhythm-day[data-level="1"] { background: rgba(204, 0, 0, 0.2); border-color: #111; }
-body.brutal .rhythm-day[data-level="2"] { background: rgba(204, 0, 0, 0.4); border-color: #111; }
-body.brutal .rhythm-day[data-level="3"] { background: rgba(204, 0, 0, 0.6); border-color: #111; }
-body.brutal .rhythm-day[data-level="4"] { background: rgba(204, 0, 0, 0.8); border-color: #111; box-shadow: none; }
-body.brutal .rhythm-day[data-level="5"] { background: #cc0000; border-color: #111; box-shadow: 2px 2px 0 #111; transform: none;}
-
 .rhythm-day:hover {
     transform: scale(1.4);
     z-index: 10;
     box-shadow: 0 0 15px white;
-}
-body.brutal .rhythm-day:hover {
-    transform: translate(-3px, -3px) scale(1.2);
-    box-shadow: 4px 4px 0 #111;
-    background: #cc0000;
-    border-color: #111;
 }
 
 /* Responsive adjustments */
@@ -2684,103 +2669,4 @@ body.aura-active .aura-breathing {
 
 .aura-overlay {
     z-index: 400; /* Lower than modals */
-}
-
-/* ═══════════════════════════════════════════════════
-   👾 GLITCH THEME — CYBERPUNK MODE 👾
-   ═══════════════════════════════════════════════════ */
-body.glitch {
-    --bg: #050505;
-    --bg-warm: #0a0a0a;
-    --glass: rgba(0, 255, 0, 0.05);
-    --glass-border: rgba(0, 255, 0, 0.3);
-    --glass-hover: rgba(0, 255, 0, 0.1);
-    --text: #00ff00;
-    --text-muted: #00aa00;
-    --sun: #ff00ff;
-    --sun-glow: rgba(255, 0, 255, 0.4);
-    --mint: #00ffff;
-    --mint-glow: rgba(0, 255, 255, 0.4);
-    --sky: #ffff00;
-    --sky-glow: rgba(255, 255, 0, 0.4);
-    --accent: #ff00ff;
-    --accent-glow: rgba(255, 0, 255, 0.2);
-    --essence: #00ff00;
-    --focus: #ff00ff;
-
-    background-color: var(--bg) !important;
-    background-image: repeating-linear-gradient(
-        0deg,
-        rgba(0,0,0,0.15),
-        rgba(0,0,0,0.15) 1px,
-        transparent 1px,
-        transparent 2px
-    ) !important; /* Scanlines */
-    color: var(--text);
-    font-family: 'Courier New', Courier, monospace !important;
-    text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5);
-}
-
-body.glitch .glass {
-    border-radius: 0;
-    border-left: 4px solid var(--sun);
-}
-
-body.glitch * {
-    border-radius: 0 !important;
-}
-
-body.glitch .primary-btn {
-    background: #111;
-    color: var(--sun);
-    border: 2px solid var(--sun);
-    text-transform: uppercase;
-    font-weight: 900;
-    letter-spacing: 2px;
-}
-
-body.glitch .primary-btn:hover {
-    background: var(--sun);
-    color: #000;
-    box-shadow: 0 0 15px var(--sun);
-    text-shadow: none;
-}
-
-body.glitch .secondary-btn {
-    background: transparent;
-    color: var(--mint);
-    border: 1px dashed var(--mint);
-}
-
-body.glitch .rhythm-day {
-    background: transparent;
-    border: 1px dashed var(--mint);
-}
-
-body.glitch .rhythm-day[data-level="1"],
-body.glitch .rhythm-day[data-level="2"],
-body.glitch .rhythm-day[data-level="3"],
-body.glitch .rhythm-day[data-level="4"] {
-    background: rgba(0, 255, 255, 0.2);
-    border-style: solid;
-}
-
-body.glitch .rhythm-day[data-level="5"] {
-    background: var(--sun);
-    border-color: var(--sun);
-    box-shadow: inset 0 0 5px #000, 0 0 10px var(--sun);
-}
-
-/* Random glitch animations for key headers */
-@keyframes textGlitch {
-    0% { transform: translate(0) }
-    20% { transform: translate(-1px, 1px) }
-    40% { transform: translate(-1px, -1px) }
-    60% { transform: translate(1px, 1px) }
-    80% { transform: translate(1px, -1px) }
-    100% { transform: translate(0) }
-}
-
-body.glitch h1, body.glitch h2 {
-    animation: textGlitch 4s infinite;
 }

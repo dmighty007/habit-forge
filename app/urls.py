@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/daily-win/add/', views.add_daily_win, name='add_daily_win'),
     path('api/quests/complete/<int:quest_id>/', views.complete_quest, name='complete_quest'),
     path('api/presets/rituals/', views.get_ritual_presets, name='get_ritual_presets'),
+    path('api/presets/exercises/', views.get_exercise_presets, name='get_exercise_presets'),
+    path('api/exercises/complete/', views.complete_exercise, name='complete_exercise'),
     path('api/rewards/redeem/<int:reward_id>/', views.redeem_reward, name='redeem_reward'),
     path('api/impulse/save/', views.save_impulse, name='save_impulse'),
 ]

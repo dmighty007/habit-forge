@@ -444,6 +444,11 @@ def complete_quest(request, quest_id):
 def get_ritual_presets(request):
     return JsonResponse({'presets': RITUAL_PRESETS})
 
+@login_required
+def get_exercise_presets(request):
+    from .presets import EXERCISE_PRESETS
+    return JsonResponse({'presets': EXERCISE_PRESETS})
+
 @csrf_exempt
 @login_required
 def redeem_reward(request, reward_id):
@@ -468,6 +473,27 @@ def redeem_reward(request, reward_id):
             return JsonResponse({'status': 'ok', 'essence': profile.essence})
         else:
             return JsonResponse({'status': 'error', 'msg': 'Not enough essence!'}, status=400)
+    return JsonResponse({'status': 'error'}, status=400)
+
+@csrf_exempt
+@login_required
+def complete_exercise(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        name = data.get('name')
+        reward = data.get('reward', 10)
+        
+        profile = request.user.userprofile
+        profile.essence += reward
+        profile.focus_points += 5
+        profile.save()
+
+        EvidenceRecord.objects.create(
+            user=request.user,
+            title=f"Kinetics: {name}",
+            description=f"Physical activation completed. +{reward} ✨"
+        )
+        return JsonResponse({'status': 'ok', 'essence': profile.essence})
     return JsonResponse({'status': 'error'}, status=400)
 
 def check_achievements(user):
