@@ -105,24 +105,46 @@ class HabitForge {
 
     restoreTheme() {
         const saved = localStorage.getItem('hf-theme');
-        if (saved === 'brutal') {
-            document.body.classList.add('brutal');
-        }
+        if (saved === 'brutal') document.body.classList.add('brutal');
+        if (saved === 'glitch') document.body.classList.add('glitch');
         this.updateThemeButton();
     }
 
     toggleTheme() {
-        document.body.classList.toggle('brutal');
-        const isBrutal = document.body.classList.contains('brutal');
-        localStorage.setItem('hf-theme', isBrutal ? 'brutal' : 'cheerful');
+        const hasGlitch = this.data && this.data.rewards && this.data.rewards.find(r => r.name === 'Glitch Theme' && r.unlocked);
+        
+        let current = localStorage.getItem('hf-theme') || 'cheerful';
+        let next = 'cheerful';
+        
+        if (current === 'cheerful') {
+            next = 'brutal';
+        } else if (current === 'brutal') {
+            next = hasGlitch ? 'glitch' : 'cheerful';
+        } else if (current === 'glitch') {
+            next = 'cheerful';
+        }
+
+        document.body.classList.remove('brutal', 'glitch');
+        if (next !== 'cheerful') document.body.classList.add(next);
+        
+        localStorage.setItem('hf-theme', next);
         this.updateThemeButton();
     }
 
     updateThemeButton() {
         const btn = document.getElementById('theme-toggle');
         if (!btn) return;
-        const isBrutal = document.body.classList.contains('brutal');
-        btn.textContent = isBrutal ? '🔥 Brutal' : '☀️ Cheerful';
+        const saved = localStorage.getItem('hf-theme');
+        if (saved === 'glitch') {
+            btn.textContent = '👾 Glitch';
+            btn.className = 'primary-btn pulse'; // Extra styling for glitch
+        } else if (saved === 'brutal') {
+            btn.textContent = '🔥 Brutal';
+            btn.className = 'secondary-btn';
+        } else {
+            btn.textContent = '☀️ Cheerful';
+            btn.className = 'secondary-btn';
+        }
     }
 
     // ─── FORTUNE COOKIE ───
@@ -908,6 +930,13 @@ class HabitForge {
 
     async redeemReward(id) {
         const card = document.getElementById(`reward-${id}`);
+        // Identify the reward based on data
+        let rewardName = '';
+        if (this.data && this.data.rewards) {
+            const rewardObj = this.data.rewards.find(r => r.id === id);
+            if (rewardObj) rewardName = rewardObj.name;
+        }
+
         try {
             const response = await fetch(`/api/rewards/redeem/${id}/`, { method: 'POST' });
             if (response.ok) {
@@ -915,6 +944,16 @@ class HabitForge {
                 if (window.particles) {
                     window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--lavender)');
                 }
+
+                // Specifically handle Glitch Theme activation
+                if (rewardName === 'Glitch Theme') {
+                    document.body.classList.remove('brutal', 'cheerful');
+                    document.body.classList.add('glitch');
+                    localStorage.setItem('hf-theme', 'glitch');
+                    this.updateThemeButton();
+                    this.showToast('👾 SYSTEM COMPROMISED. GLITCH THEME ACTIVATED.', 'info');
+                }
+
                 setTimeout(async () => {
                     await this.loadData();
                     this.render();
