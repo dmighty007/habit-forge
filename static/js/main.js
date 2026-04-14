@@ -67,6 +67,35 @@ class HabitForge {
         this.timerMode = 'work'; // 'work' or 'break'
         this.timerTotalSeconds = 25 * 60;
         this.pomoCount = parseInt(localStorage.getItem('hf-pomo-count')) || 0;
+        this.audio = null;
+        this.currentAudioKey = null;
+        this.currentAudioGenre = null;
+        
+        // Audio Library
+        this.AUDIO_LIBRARY = {
+            'lofi': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+            ],
+            'nature': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+            ],
+            'focus': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
+            ],
+            'celestial': [
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3',
+                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
+            ]
+        };
+
         this.init();
     }
 
@@ -76,7 +105,9 @@ class HabitForge {
         this.showRandomFortune();
         await this.loadData();
         this.setupListeners();
+        this.restoreImpulseLot();
         this.render();
+        this.fetchRhythmData();
     }
 
     restoreTheme() {
@@ -136,6 +167,19 @@ class HabitForge {
         this.timerRunning = true;
         const btn = document.getElementById('timer-start');
         if (btn) btn.textContent = '⏸ Pause';
+        
+        // Aura Mode Activation
+        document.body.classList.add('aura-active');
+        // Ensure overlay elements exist
+        if (!document.getElementById('aura-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'aura-overlay';
+            document.body.appendChild(overlay);
+            
+            const breathing = document.createElement('div');
+            breathing.className = 'aura-breathing';
+            document.body.appendChild(breathing);
+        }
 
         this.timerInterval = setInterval(() => {
             this.timerSeconds--;
@@ -162,6 +206,11 @@ class HabitForge {
         this.timerTotalSeconds = 25 * 60;
         const btn = document.getElementById('timer-start');
         if (btn) btn.textContent = '▶ Start';
+
+        // Aura Mode Deactivation
+        document.body.classList.remove('aura-active');
+        document.getElementById('aura-overlay')?.classList.add('hidden');
+
         this.updateTimerDisplay();
         const badge = document.getElementById('timer-mode-badge');
         if (badge) badge.textContent = 'work';
@@ -198,6 +247,9 @@ class HabitForge {
 
         const sessionsEl = document.getElementById('timer-sessions');
         if (sessionsEl) sessionsEl.textContent = `Sessions: ${this.pomoCount} 🍅`;
+        
+        // Deactivate Aura Mode on completion
+        document.body.classList.remove("aura-active");
     }
 
     updateTimerDisplay() {
@@ -278,8 +330,115 @@ class HabitForge {
         try {
             const response = await fetch('/api/data/');
             this.data = await response.json();
+            
+            // Auto-refresh rhythm when data changes significantly
+            if (this.data.essence % 50 === 0) {
+                this.fetchRhythmData();
+            }
         } catch (error) {
             console.error('Failed to load data:', error);
+        }
+    }
+
+    async fetchRhythmData() {
+        try {
+            const response = await fetch('/api/analytics/rhythm/');
+            const result = await response.json();
+            this.renderRhythmMap(result.rhythm);
+        } catch (error) {
+            console.error('Failed to fetch rhythm data:', error);
+        }
+    }
+
+    renderRhythmMap(rhythm) {
+        const container = document.getElementById('rhythm-map');
+        if (!container) return;
+
+        // Create 30 days grid
+        const now = new Date();
+        const days = [];
+        for (let i = 29; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const dStr = d.toISOString().split('T')[0];
+            const count = rhythm[dStr] || 0;
+            const level = Math.min(5, count);
+            days.push(`<div class="rhythm-day" data-level="${level}" title="${dStr}: ${count} completions"></div>`);
+        }
+        container.innerHTML = days.join('');
+    }
+
+    // ─── AMBIENT AUDIO ───
+    toggleAudio(genre) {
+        if (this.currentAudioGenre === genre) {
+            if (this.audio) {
+                this.audio.pause();
+                this.audio = null;
+            }
+            this.currentAudioGenre = null;
+        } else {
+            if (this.audio) this.audio.pause();
+            
+            // Pro Shuffle Logic: Select a random track from the selected genre
+            const tracks = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['focus'];
+            let randomTrack;
+            
+            // Avoid playing the same track twice in a row if possible
+            if (tracks.length > 1) {
+                do {
+                    randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                } while (randomTrack === this.lastPlayedTrack);
+            } else {
+                randomTrack = tracks[0];
+            }
+            
+            this.lastPlayedTrack = randomTrack;
+            this.audio = new Audio(randomTrack);
+            this.audio.loop = true;
+            this.audio.play().catch(e => console.warn("Audio playback blocked:", e));
+            this.currentAudioGenre = genre;
+            
+            // Particle feedback on audio start
+            if (window.particles) {
+                window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
+            }
+        }
+
+        document.querySelectorAll('.biome-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.audio === this.currentAudioGenre);
+        });
+    }
+
+    // ─── IMPULSE PARKING LOT ───
+    restoreImpulseLot() {
+        const val = localStorage.getItem('hf-impulse') || '';
+        const el = document.getElementById('impulse-input');
+        if (el) el.value = val;
+    }
+
+    saveImpulseLot() {
+        const el = document.getElementById('impulse-input');
+        if (!el || !el.value) return;
+        localStorage.setItem('hf-impulse', el.value);
+        
+        // Pro Persistence: Save to backend
+        fetch('/api/impulse/save/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: el.value })
+        }).catch(err => console.warn("Backend impulse save failed, using local only."));
+    }
+
+    // ─── BURNOUT SHIELD ───
+    async toggleVacationMode() {
+        try {
+            const response = await fetch('/api/vacation/toggle/', { method: 'POST' });
+            const result = await response.json();
+            this.data.vacationActive = result.vacationActive;
+            this.data.vacationUntil = result.vacationUntil;
+            this.render();
+        } catch (error) {
+            console.error('Failed to toggle vacation mode:', error);
         }
     }
 
@@ -320,6 +479,9 @@ class HabitForge {
         document.getElementById('theme-toggle')?.addEventListener('click', () => {
             this.toggleTheme();
         });
+        document.getElementById('burnout-shield-btn')?.addEventListener('click', () => {
+            this.toggleVacationMode();
+        });
 
         // Energy Selector
         document.getElementById('energy-selector')?.querySelectorAll('.state-pill').forEach(btn => {
@@ -335,6 +497,129 @@ class HabitForge {
         document.getElementById('new-fortune-btn')?.addEventListener('click', () => this.showRandomFortune());
         document.getElementById('clear-dump-btn')?.addEventListener('click', () => this.clearBrainDump());
         document.getElementById('brain-dump')?.addEventListener('input', () => this.saveBrainDump());
+
+        // Audio controls
+        document.querySelectorAll('.biome-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.toggleAudio(btn.dataset.audio));
+        });
+
+        // Gratitude / Water logic
+        document.getElementById('water-tree-btn')?.addEventListener('click', () => {
+            document.getElementById('gratitude-modal-overlay')?.classList.remove('hidden');
+            document.getElementById('gratitude-seed-input')?.focus();
+        });
+        document.getElementById('close-gratitude-modal-btn')?.addEventListener('click', () => {
+            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
+        });
+        document.getElementById('confirm-water-btn')?.addEventListener('click', () => {
+            const content = document.getElementById('gratitude-seed-input').value;
+            this.confirmWaterTree(content);
+        });
+
+        // ─── FEATURE RAMPAGE LISTENERS ───
+        document.getElementById('ritual-library-btn')?.addEventListener('click', () => this.showRitualLibrary());
+        document.getElementById('close-library-btn')?.addEventListener('click', () => {
+            document.getElementById('library-modal-overlay')?.classList.add('hidden');
+        });
+        document.getElementById('impulse-input')?.addEventListener('input', () => this.saveImpulseLot());
+
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                this.renderRewards(pill.dataset.category);
+            });
+        });
+    }
+
+    async showRitualLibrary() {
+        const modal = document.getElementById('library-modal-overlay');
+        const container = document.getElementById('library-content');
+        if (!modal || !container) return;
+
+        modal.classList.remove('hidden');
+        container.innerHTML = '<p class="muted">Scanning archives...</p>';
+
+        try {
+            const response = await fetch('/api/presets/rituals/');
+            const { presets } = await response.json();
+            container.innerHTML = presets.map(p => `
+                <div class="preset-card glass" onclick="window.app.importPreset(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                    <span class="badge secondary small">${p.energy}</span>
+                    <h4>${p.name}</h4>
+                    <span class="tiny">${p.sustainable}</span>
+                    <button class="minimal-btn" style="float:right;">+</button>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = '<p class="error">Library unreachable.</p>';
+        }
+    }
+
+    async importPreset(p) {
+        try {
+            await fetch('/api/habits/add/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: p.name,
+                    sustainable: p.sustainable,
+                    reward: p.reward,
+                    energy_required: p.energy,
+                    is_micro_ritual: p.is_micro
+                })
+            });
+            await this.loadData();
+            this.render();
+            document.getElementById('library-modal-overlay')?.classList.add('hidden');
+        } catch (e) {
+            console.error('Import failed:', e);
+        }
+    }
+
+    async completeQuest(id) {
+        try {
+            const response = await fetch(`/api/quests/complete/${id}/`, { method: 'POST' });
+            if (response.ok) {
+                await this.loadData();
+                this.render();
+                if (window.particles) {
+                    window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'rgb(96, 165, 250)');
+                }
+            }
+        } catch (e) {
+            console.error('Quest completion failed:', e);
+        }
+    }
+
+    async confirmWaterTree(content) {
+        if (!content) return;
+        try {
+            // Log the win
+            await fetch('/api/daily-win/add/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            // Water the tree
+            await this.waterTree();
+            document.getElementById('gratitude-modal-overlay')?.classList.add('hidden');
+            document.getElementById('gratitude-seed-input').value = '';
+        } catch (error) {
+            console.error('Watering failed:', error);
+        }
+    }
+
+    async waterTree() {
+        try {
+            const response = await fetch('/api/tree/water/', { method: 'POST' });
+            if (response.ok) {
+                await this.loadData();
+                this.render();
+            }
+        } catch (error) {
+            console.error('Failed to water tree:', error);
+        }
     }
 
     async updateState(state) {
@@ -445,21 +730,24 @@ class HabitForge {
     }
 
     async waterTree() {
-        try {
-            const response = await fetch('/api/tree/water/', { method: 'POST' });
-            if (response.ok) {
-                await this.loadData();
-                this.render();
-            }
-        } catch (error) {
-            console.error('Failed to water tree:', error);
-        }
+        // Handled via confirmWaterTree now
     }
 
     render() {
         try {
             this.updateElementText('essence-count', this.data.essence);
             this.updateElementText('focus-points', this.data.focusPoints);
+
+            if (this.data.displayName) {
+                this.updateElementText('user-display-name', this.data.displayName);
+            }
+
+            // Burnout Shield Status
+            const shieldBtn = document.getElementById('burnout-shield-btn');
+            if (shieldBtn) {
+                shieldBtn.classList.toggle('active', this.data.vacationActive);
+                shieldBtn.textContent = this.data.vacationActive ? '🛡️ Shield: ACTIVE' : '🛡️ Shield: OFF';
+            }
 
             const treeVisual = document.getElementById('tree-stage');
             if (treeVisual) {
@@ -521,17 +809,37 @@ class HabitForge {
                 this.setupHoldToInitiate();
             }
 
+            // Achievements
+            const achievementGrid = document.getElementById('achievements-grid');
+            if (achievementGrid && this.data.achievements) {
+                achievementGrid.innerHTML = this.data.achievements.map(a => `
+                    <div class="achievement-card glass">
+                        <span class="achievement-icon">${a.icon || '🏆'}</span>
+                        <h3>${a.title}</h3>
+                        <p>${a.description}</p>
+                        <div class="badge secondary small" style="margin-top:10px;">Unlocked</div>
+                    </div>
+                `).join('') || '<p class="muted small">No trophies yet. Keep forging!</p>';
+            }
+
             const rewardList = document.getElementById('reward-list');
             if (rewardList) {
-                rewardList.innerHTML = (this.data.rewards || []).map(r => `
-                    <div class="reward-card">
-                        <h3>${r.name}</h3>
-                        <div class="card-actions">
-                            <span>✨ ${r.cost}</span>
-                            <button class="secondary-btn" ${this.data.essence < r.cost ? 'disabled' : ''}>Redeem</button>
-                        </div>
+                const category = document.querySelector('.filter-pill.active')?.dataset.category || 'all';
+                this.renderRewards(category);
+            }
+
+            // Quests
+            const questList = document.getElementById('quest-list');
+            if (questList) {
+                questList.innerHTML = (this.data.quests || []).map(q => `
+                    <div class="quest-card ${q.is_completed ? 'completed' : ''}" onclick="window.app.completeQuest(${q.id})">
+                        <span class="quest-cat">${q.category}</span>
+                        <h4>${q.title}</h4>
+                        <p class="muted small">${q.description}</p>
+                        <span class="quest-reward">+${q.essence_reward} ✨</span>
+                        ${q.is_completed ? '<span class="badge secondary small" style="position:absolute; bottom:12px; right:12px;">DONE</span>' : ''}
                     </div>
-                `).join('');
+                `).join('') || '<p class="muted small">No quests active today.</p>';
             }
 
             // Render new features
@@ -539,6 +847,53 @@ class HabitForge {
             this.updateTimerDisplay();
         } catch (e) {
             console.error('Render error:', e);
+        }
+    }
+
+    renderRewards(category = 'all') {
+        const grid = document.getElementById('reward-list');
+        if (!grid) return;
+
+        let filtered = this.data.rewards || [];
+        if (category !== 'all') {
+            filtered = filtered.filter(r => r.category === category);
+        }
+
+        grid.innerHTML = filtered.map(r => `
+            <div class="reward-card ${r.unlocked ? 'unlocked' : ''}" id="reward-${r.id}">
+                <div style="font-size: 2rem; margin-bottom: 10px;">${r.icon || '🎁'}</div>
+                <div class="badge secondary small" style="margin-bottom: 8px;">${r.rarity || 'common'}</div>
+                <h3>${r.name}</h3>
+                <div class="card-actions">
+                    <span class="cost">${r.cost} ✨</span>
+                    ${r.unlocked ? 
+                        '<span class="badge secondary">UNLOCKED</span>' : 
+                        `<button class="secondary-btn small" onclick="window.app.redeemReward(${r.id})">Redeem</button>`
+                    }
+                </div>
+            </div>
+        `).join('') || '<p class="muted small">No rewards in this category yet.</p>';
+    }
+
+    async redeemReward(id) {
+        const card = document.getElementById(`reward-${id}`);
+        try {
+            const response = await fetch(`/api/rewards/redeem/${id}/`, { method: 'POST' });
+            if (response.ok) {
+                card?.classList.add('unlocking');
+                if (window.particles) {
+                    window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--lavender)');
+                }
+                setTimeout(async () => {
+                    await this.loadData();
+                    this.render();
+                }, 600);
+            } else {
+                const data = await response.json();
+                alert(data.msg || "Insufficient essence!");
+            }
+        } catch (e) {
+            console.error('Redemption failed:', e);
         }
     }
 
@@ -589,6 +944,31 @@ class HabitForge {
         if (btn.querySelector('.btn-text')) btn.querySelector('.btn-text').textContent = "DONE! 💫";
         const rect = btn.getBoundingClientRect();
         this.completeHabit(id, rect);
+    }
+
+    renderRewards(category) {
+        const rewardList = document.getElementById('reward-list');
+        if (!rewardList) return;
+
+        const filtered = category === 'all' 
+            ? this.data.rewards 
+            : this.data.rewards.filter(r => r.category === category);
+
+        rewardList.innerHTML = (filtered || []).map(r => `
+            <div class="reward-card">
+                <div class="section-header" style="justify-content:space-between;">
+                    <span class="rarity-badge rarity-${r.rarity}">${r.rarity}</span>
+                    <span class="badge secondary small">${r.category}</span>
+                </div>
+                <h3>${r.icon || '🎁'} ${r.name}</h3>
+                <div class="card-actions">
+                    <span>✨ ${r.cost}</span>
+                    <button class="secondary-btn" ${this.data.essence < r.cost || r.unlocked ? 'disabled' : ''}>
+                        ${r.unlocked ? 'Unlocked' : 'Redeem'}
+                    </button>
+                </div>
+            </div>
+        `).join('') || '<p class="muted small">No items in this category.</p>';
     }
 }
 

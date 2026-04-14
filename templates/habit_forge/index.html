@@ -11,10 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="state-steady">
+    <div id="aura-overlay" class="aura-overlay hidden"></div>
     <div id="app">
         <nav class="glass-nav">
             <div class="logo">Habit Forge <span class="badge">PRO</span></div>
             <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Brutal Mode">☀️ Cheerful</button>
+            <button id="burnout-shield-btn" class="shield-btn" title="Activate Burnout Shield (24h Reset)">🛡️ Shield: OFF</button>
             
             <div class="state-selector-wrapper">
                 <span class="label">Current State:</span>
@@ -34,6 +36,12 @@
                     <span class="stat-icon">✨</span>
                     <span id="essence-count">0</span> Essence
                 </div>
+            </div>
+
+            <div class="user-pill">
+                <a href="/profile/" class="user-avatar" id="user-avatar" title="Profile">{{ user.username.0|upper }}</a>
+                <span class="user-name" id="user-display-name">{{ user.username }}</span>
+                <a href="/logout/" class="logout-btn" title="Sign Out">↗</a>
             </div>
         </nav>
 
@@ -72,6 +80,24 @@
                         <button id="timer-start" class="primary-btn">▶ Start</button>
                         <button id="timer-reset" class="secondary-btn">↺ Reset</button>
                     </div>
+                    <div class="audio-biome-grid">
+                        <button class="biome-btn" data-audio="lofi">
+                            <span class="biome-icon">🎧</span>
+                            <span>Cyber Cafe</span>
+                        </button>
+                        <button class="biome-btn" data-audio="nature">
+                            <span class="biome-icon">🌿</span>
+                            <span>Rainy Forest</span>
+                        </button>
+                        <button class="biome-btn" data-audio="focus">
+                            <span class="biome-icon">🎯</span>
+                            <span>Deep Flow</span>
+                        </button>
+                        <button class="biome-btn" data-audio="celestial">
+                            <span class="biome-icon">✨</span>
+                            <span>Stardust</span>
+                        </button>
+                    </div>
                     <p id="timer-sessions" class="muted small" style="text-align:center;margin-top:8px;">Sessions: 0 🍅</p>
                 </section>
 
@@ -88,6 +114,16 @@
                     </div>
                     <div id="todo-list" class="todo-list">
                         <!-- Todos injected here -->
+                    </div>
+                </section>
+
+                <section class="quest-panel glass">
+                    <div class="section-header">
+                        <h2>🎯 Daily Quests</h2>
+                        <span class="badge secondary">15 ✨</span>
+                    </div>
+                    <div id="quest-list" class="quest-list">
+                        <!-- Active daily quests -->
                     </div>
                 </section>
 
@@ -124,12 +160,26 @@
                         <h2>Daily Rituals</h2>
                         <p id="ritual-suggestion" class="suggestion">Tailored to your current state.</p>
                     </div>
-                    <button id="add-habit-btn" class="secondary-btn">+ New Ritual</button>
+                    <div class="header-actions">
+                        <button id="ritual-library-btn" class="secondary-btn small">📚 Library</button>
+                        <button id="add-habit-btn" class="primary-btn small">+ New</button>
+                    </div>
                 </div>
                 
                 <div id="habit-list" class="ritual-grid">
                     <!-- Habits will be injected here -->
                 </div>
+
+                <!-- 📊 LIFE RHYTHM -->
+                <section class="rhythm-section glass">
+                    <div class="section-header">
+                        <h2>📊 Life Rhythm</h2>
+                        <p class="muted small">30-day Completion Heatmap</p>
+                    </div>
+                    <div id="rhythm-map" class="rhythm-map">
+                        <!-- Heatmap grid injected here -->
+                    </div>
+                </section>
             </section>
         </main>
 
@@ -145,15 +195,28 @@
 
         <section class="reward-section glass">
             <div class="section-header">
-                <h2>Reward Boutique</h2>
+                <h2>Reward Emporium</h2>
+                <div class="filter-pills">
+                    <button class="filter-pill active" data-category="all">All</button>
+                    <button class="filter-pill" data-category="digital">Digital</button>
+                    <button class="filter-pill" data-category="personal">Personal</button>
+                </div>
             </div>
             <div id="reward-list" class="reward-grid">
                 <!-- Rewards will be injected here -->
             </div>
         </section>
 
+        <section class="parking-lot-section glass">
+            <div class="section-header">
+                <h2>📝 Impulse Parking Lot</h2>
+                <span class="muted small">Park side-quests here</span>
+            </div>
+            <textarea id="impulse-input" class="parking-lot-textarea" placeholder="Park your urgent non-urgent thoughts..."></textarea>
+        </section>
+
         <!-- Template for Modals -->
-        <div id="modal-overlay" class="hidden">
+        <div id="modal-overlay" class="modal-overlay hidden">
             <div class="modal glass">
                 <h3 id="modal-title">Forge New Ritual</h3>
                 <div class="form-group">
@@ -190,7 +253,7 @@
         </div>
 
         <!-- Todo Modal -->
-        <div id="todo-modal-overlay" class="hidden">
+        <div id="todo-modal-overlay" class="modal-overlay hidden">
             <div class="modal glass small">
                 <h3>New Daily Focus</h3>
                 <div class="form-group">
@@ -201,6 +264,34 @@
                     <button id="save-todo-btn" class="primary-btn">Add Focus</button>
                     <button id="close-todo-modal-btn" class="secondary-btn">Cancel</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- 🌸 Gratitude Seed Modal -->
+        <div id="gratitude-modal-overlay" class="modal-overlay hidden">
+            <div class="modal glass small">
+                <h3>Plant a Gratitude Seed 🌸</h3>
+                <p class="muted small" style="margin-bottom:15px;">To water the tree, share one small win or thing you're grateful for today.</p>
+                <div class="form-group">
+                    <input type="text" id="gratitude-seed-input" placeholder="Today, I am grateful for..." autofocus>
+                </div>
+                <div class="modal-actions">
+                    <button id="confirm-water-btn" class="primary-btn">✨ Water & Plant</button>
+                    <button id="close-gratitude-modal-btn" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ritual Library Modal -->
+    <div id="library-modal-overlay" class="modal-overlay hidden">
+        <div class="modal glass library-modal">
+            <div class="modal-header">
+                <h2>📚 Ritual Discovery</h2>
+                <button id="close-library-btn" class="close-btn">&times;</button>
+            </div>
+            <div id="library-content" class="library-grid scrollable">
+                <!-- Presets injected here -->
             </div>
         </div>
     </div>

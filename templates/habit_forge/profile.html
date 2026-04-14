@@ -1,0 +1,254 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Habit Forge Pro</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .profile-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .profile-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            margin-bottom: 24px;
+            transition: color 0.3s;
+        }
+        .profile-back:hover { color: var(--sun); }
+
+        .profile-hero {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sun), var(--coral), var(--lavender));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1a1a2e;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 32px var(--sun-glow);
+            animation: avatarPulse 3s ease-in-out infinite;
+        }
+        @keyframes avatarPulse {
+            0%, 100% { box-shadow: 0 8px 32px var(--sun-glow); }
+            50% { box-shadow: 0 8px 48px var(--sun-glow), 0 0 60px rgba(251, 191, 36, 0.1); }
+        }
+        .profile-hero h1 {
+            font-family: var(--font-alt);
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        .profile-hero .member-since {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: var(--font-alt);
+            margin-bottom: 4px;
+        }
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card.gold .stat-value { color: var(--sun); }
+        .stat-card.green .stat-value { color: var(--mint); }
+        .stat-card.purple .stat-value { color: var(--lavender); }
+        .stat-card.coral .stat-value { color: var(--coral); }
+
+        .profile-section {
+            margin-bottom: 20px;
+        }
+        .profile-section h2 {
+            font-family: var(--font-alt);
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+        .profile-form .form-group {
+            margin-bottom: 18px;
+        }
+        .profile-form label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .profile-form input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .profile-form input:focus {
+            border-color: var(--sun);
+            box-shadow: 0 0 16px rgba(251, 191, 36, 0.12);
+        }
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .save-toast {
+            display: none;
+            color: var(--mint);
+            font-weight: 700;
+            font-size: 0.85rem;
+            animation: toastFade 2s ease-out forwards;
+        }
+        @keyframes toastFade {
+            0%   { opacity: 1; transform: translateY(0); }
+            80%  { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-8px); }
+        }
+
+        .danger-zone {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .danger-zone .secondary-btn {
+            color: var(--coral);
+            border-color: rgba(251, 113, 133, 0.2);
+        }
+        .danger-zone .secondary-btn:hover {
+            background: rgba(251, 113, 133, 0.1);
+            border-color: var(--coral);
+        }
+
+        @media (max-width: 480px) {
+            .profile-hero h1 { font-size: 1.4rem; }
+            .stat-card { padding: 14px; }
+            .stat-card .stat-value { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-page">
+        <a href="{% url 'index' %}" class="profile-back">← Back to Dashboard</a>
+
+        <div class="profile-hero glass" style="animation: authSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div class="profile-avatar">{{ user.username.0|upper }}</div>
+            <h1>{{ user.first_name|default:user.username }}</h1>
+            <p class="member-since">Member since {{ stats.member_since|date:"M d, Y" }}</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card gold">
+                <div class="stat-value">{{ stats.total_essence }}</div>
+                <div class="stat-label">✨ Essence</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-value">{{ stats.total_focus }}</div>
+                <div class="stat-label">🎯 Focus Points</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-value">{{ stats.total_rituals }}</div>
+                <div class="stat-label">🔥 Rituals</div>
+            </div>
+            <div class="stat-card coral">
+                <div class="stat-value">🌳 Stage {{ stats.tree_stage }}</div>
+                <div class="stat-label">Growth Tree</div>
+            </div>
+        </div>
+
+        <section class="profile-section glass">
+            <h2>⚙️ Account Settings</h2>
+            <div class="profile-form">
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="display-name" value="{{ user.first_name|default:'' }}" placeholder="How should we call you?">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" value="{{ user.email|default:'' }}" placeholder="your@email.com">
+                </div>
+                <div class="profile-actions">
+                    <button class="primary-btn" onclick="saveProfile()">💾 Save Changes</button>
+                    <span class="save-toast" id="save-toast">✓ Saved!</span>
+                </div>
+            </div>
+
+            <div class="danger-zone">
+                <a href="{% url 'logout' %}" class="secondary-btn">🚪 Sign Out</a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+    async function saveProfile() {
+        const data = {
+            first_name: document.getElementById('display-name').value,
+            email: document.getElementById('email').value,
+        };
+        const res = await fetch('/api/profile/update/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+            body: JSON.stringify(data),
+        });
+        if (res.ok) {
+            const toast = document.getElementById('save-toast');
+            toast.style.display = 'inline';
+            toast.style.animation = 'none';
+            toast.offsetHeight; // reflow
+            toast.style.animation = 'toastFade 2s ease-out forwards';
+        }
+    }
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+    </script>
+</body>
+</html>
