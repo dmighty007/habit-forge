@@ -17,13 +17,12 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.userprofile.save()
+    else:
+        if hasattr(instance, 'userprofile'):
+            instance.userprofile.save()
 
 class Habit(models.Model):
     USER_ENERGY_CHOICES = [

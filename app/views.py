@@ -80,7 +80,7 @@ def register_view(request):
         Reward.objects.create(user=user, name='Glitch Theme', cost=100, category='digital', rarity='rare', icon='👾')
         Reward.objects.create(user=user, name='Deep Focus Track', cost=150, category='digital', rarity='legendary', icon='🎧')
 
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect('index')
 
     return render(request, 'habit_forge/login.html', {'tab': 'register'})
@@ -272,7 +272,8 @@ def water_tree(request):
         profile = request.user.userprofile
         if profile.essence >= 10:
             profile.essence -= 10
-            profile.tree_progress += 20
+            # Faster growth for immediate feedback
+            profile.tree_progress += 100 
             if profile.tree_progress >= 100:
                 profile.tree_progress = 0
                 if profile.tree_stage < 5:
