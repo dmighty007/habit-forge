@@ -270,14 +270,16 @@ def complete_habit(request, habit_id):
 def water_tree(request):
     if request.method == 'POST':
         profile = request.user.userprofile
-        if profile.essence >= 10:
+        if profile.essence >= 10 and profile.tree_progress < 100:
             profile.essence -= 10
-            # Faster growth for immediate feedback
-            profile.tree_progress += 100 
+            profile.tree_progress += 20
+            
             if profile.tree_progress >= 100:
-                profile.tree_progress = 0
-                if profile.tree_stage < 5:
-                    profile.tree_stage += 1
+                profile.tree_progress = 100
+                profile.tree_stage = 5
+            else:
+                profile.tree_stage = profile.tree_progress // 20
+                
             profile.save()
             return JsonResponse({
                 'status': 'ok',
