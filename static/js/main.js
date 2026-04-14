@@ -170,7 +170,6 @@ class HabitForge {
         
         // Aura Mode Activation
         document.body.classList.add('aura-active');
-        // Ensure overlay elements exist
         if (!document.getElementById('aura-overlay')) {
             const overlay = document.createElement('div');
             overlay.id = 'aura-overlay';
@@ -179,6 +178,11 @@ class HabitForge {
             const breathing = document.createElement('div');
             breathing.className = 'aura-breathing';
             document.body.appendChild(breathing);
+        }
+
+        // Auto-start audio if a biome is selected
+        if (this.currentAudioGenre) {
+            this.playAudioForGenre(this.currentAudioGenre);
         }
 
         this.timerInterval = setInterval(() => {
@@ -196,6 +200,11 @@ class HabitForge {
         clearInterval(this.timerInterval);
         const btn = document.getElementById('timer-start');
         if (btn) btn.textContent = '▶ Resume';
+
+        // Pause audio
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+        }
     }
 
     resetTimer() {
@@ -210,6 +219,15 @@ class HabitForge {
         // Aura Mode Deactivation
         document.body.classList.remove('aura-active');
         document.getElementById('aura-overlay')?.classList.add('hidden');
+
+        // Stop audio
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio.currentTime = 0;
+            this.currentAudio = null;
+            this.currentAudioGenre = null;
+            document.querySelectorAll('.biome-btn').forEach(b => b.classList.remove('active'));
+        }
 
         this.updateTimerDisplay();
         const badge = document.getElementById('timer-mode-badge');
@@ -370,43 +388,50 @@ class HabitForge {
 
     // ─── AMBIENT AUDIO ───
     toggleAudio(genre) {
+        // Toggle biome selection (does NOT play — that happens on timer start)
         if (this.currentAudioGenre === genre) {
-            if (this.audio) {
-                this.audio.pause();
-                this.audio = null;
-            }
+            // Deselect
             this.currentAudioGenre = null;
-        } else {
-            if (this.audio) this.audio.pause();
-            
-            // Pro Shuffle Logic: Select a random track from the selected genre
-            const tracks = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['focus'];
-            let randomTrack;
-            
-            // Avoid playing the same track twice in a row if possible
-            if (tracks.length > 1) {
-                do {
-                    randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-                } while (randomTrack === this.lastPlayedTrack);
-            } else {
-                randomTrack = tracks[0];
+            if (this.currentAudio) {
+                this.currentAudio.pause();
+                this.currentAudio = null;
             }
-            
-            this.lastPlayedTrack = randomTrack;
-            this.audio = new Audio(randomTrack);
-            this.audio.loop = true;
-            this.audio.play().catch(e => console.warn("Audio playback blocked:", e));
+        } else {
+            // Select new genre
             this.currentAudioGenre = genre;
-            
-            // Particle feedback on audio start
-            if (window.particles) {
-                window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
+            // If timer is already running, switch audio immediately
+            if (this.timerRunning) {
+                this.playAudioForGenre(genre);
             }
         }
 
         document.querySelectorAll('.biome-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.audio === this.currentAudioGenre);
         });
+    }
+
+    playAudioForGenre(genre) {
+        if (this.currentAudio) this.currentAudio.pause();
+
+        const tracks = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['focus'];
+        let randomTrack;
+
+        if (tracks.length > 1) {
+            do {
+                randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+            } while (randomTrack === this.lastPlayedTrack);
+        } else {
+            randomTrack = tracks[0];
+        }
+
+        this.lastPlayedTrack = randomTrack;
+        this.currentAudio = new Audio(randomTrack);
+        this.currentAudio.loop = true;
+        this.currentAudio.play().catch(e => console.warn("Audio playback blocked:", e));
+
+        if (window.particles) {
+            window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
+        }
     }
 
     // ─── IMPULSE PARKING LOT ───

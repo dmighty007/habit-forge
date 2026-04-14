@@ -208,3 +208,5 @@ __marimo__/
 
 # Exclude settings.py from version control
 core/settings.py
+
+staticfiles/

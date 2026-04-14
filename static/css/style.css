@@ -2134,7 +2134,7 @@ body.brutal .state-selector-wrapper .label {
 .aura-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.85) 100%);
+    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
     z-index: 400;
     pointer-events: none;
     opacity: 0;
@@ -2150,7 +2150,7 @@ body.brutal .state-selector-wrapper .label {
     border-color: var(--accent);
 }
 .aura-active main > *:not(.aura-target) {
-    filter: blur(4px) brightness(0.4) grayscale(0.5);
+    opacity: 0.25;
     pointer-events: none;
     transition: all 1s ease;
 }
@@ -2324,7 +2324,7 @@ body.brutal .state-selector-wrapper .label {
 #aura-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, transparent 0%, rgba(5, 10, 25, 0.92) 100%);
+    background: radial-gradient(circle at center, transparent 0%, rgba(5, 10, 25, 0.6) 100%);
     pointer-events: none;
     z-index: 400;
     opacity: 0;
@@ -2338,7 +2338,7 @@ body.aura-active #aura-overlay {
 body.aura-active .glass-nav,
 body.aura-active .sidebar > section:not(.timer-panel),
 body.aura-active .ritual-grid > *:not(.active-focus) {
-    filter: blur(4px) brightness(0.4);
+    opacity: 0.3;
     pointer-events: none;
     transition: all 2s ease;
 }
