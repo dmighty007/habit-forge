@@ -71,30 +71,31 @@ class HabitForge {
         this.currentAudioKey = null;
         this.currentAudioGenre = null;
         
-        // Audio Library
+        // Audio Library - High Quality Cognitive/Classical (Piano & Violin)
         this.AUDIO_LIBRARY = {
             'lofi': [
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+                'https://upload.wikimedia.org/wikipedia/commons/d/df/Debussy_-_Clair_de_Lune_%28played_by_Caio_Paggiaro%29.ogg',
+                'https://upload.wikimedia.org/wikipedia/commons/7/7b/Chopin_-_Nocturne_Op_9_No_2_E_Flat_Major.ogg'
             ],
             'nature': [
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+                'https://upload.wikimedia.org/wikipedia/commons/2/23/Beethoven_Moonlight_1st_movement.ogg'
             ],
             'focus': [
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
+                'https://upload.wikimedia.org/wikipedia/commons/e/ea/Vivaldi_-_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg',
+                'https://upload.wikimedia.org/wikipedia/commons/e/e0/JS_Bach_-_Cello_Suite_1_-_i_prelude.ogg'
             ],
             'celestial': [
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3',
-                'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
+                'https://upload.wikimedia.org/wikipedia/commons/4/4b/Satie_-_Gymnopedie_No_1_-_Kevin_MacLeod.ogg'
             ]
         };
+
+        // Inject Toast styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        `;
+        document.head.appendChild(style);
 
         this.init();
     }
@@ -528,6 +529,10 @@ class HabitForge {
 
         // Gratitude / Water logic
         document.getElementById('water-tree-btn')?.addEventListener('click', () => {
+            if (this.data && this.data.essence < 10) {
+                this.showToast('Not enough ✨ Essence! Complete a ritual or two to water your tree again.', 'error');
+                return;
+            }
             document.getElementById('gratitude-modal-overlay')?.classList.remove('hidden');
             document.getElementById('gratitude-seed-input')?.focus();
         });
@@ -745,6 +750,40 @@ class HabitForge {
     }
 
 
+
+    showToast(message, type='info') {
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.style.position = 'fixed';
+            toastContainer.style.bottom = '20px';
+            toastContainer.style.right = '20px';
+            toastContainer.style.zIndex = '9999';
+            toastContainer.style.display = 'flex';
+            toastContainer.style.flexDirection = 'column';
+            toastContainer.style.gap = '10px';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = `glass`;
+        toast.style.padding = '12px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        toast.style.borderLeft = type === 'error' ? '4px solid var(--sun)' : '4px solid var(--mint)';
+        toast.style.animation = 'slideInRight 0.3s ease forwards';
+        toast.style.color = 'var(--text)';
+        toast.style.fontWeight = '500';
+        toast.textContent = message;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     render() {
         try {
