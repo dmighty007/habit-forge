@@ -186,10 +186,28 @@
                             <h2>🦾 Kinetics Mode</h2>
                             <p class="suggestion">Physical hypertrophy rituals for young underweight frames.</p>
                         </div>
+                        <div class="mode-toggle glass">
+                            <button class="mode-btn active" id="mode-daily" onclick="window.app.setKineticsMode('daily')">Daily</button>
+                            <button class="mode-btn" id="mode-campaign" onclick="window.app.setKineticsMode('campaign')">🌟 Journey</button>
+                        </div>
                     </div>
                     
                     <div class="kinetics-grid" id="kinetics-grid">
                         <!-- Exercise cards injected here -->
+                    </div>
+
+                    <div id="campaign-view" class="campaign-container hidden">
+                        <div class="mission-header glass">
+                            <h3 id="current-mission-title">Level 1: Activate the Engine</h3>
+                            <p id="current-mission-objective" class="muted small"></p>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" id="mission-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="mission-exercises" id="mission-exercises-list">
+                            <!-- Injected by JS -->
+                        </div>
+                        <div class="energy-model-tip glass small muted" id="mission-tip"></div>
                     </div>
                 </div>
 
@@ -320,6 +338,7 @@
     </div>
     <canvas id="dopamine-canvas"></canvas>
     <script src="{% static 'js/particles.js' %}"></script>
+    <script src="{% static 'js/kinetics_data.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

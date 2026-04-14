@@ -60,6 +60,9 @@ class HabitForge {
             rewards: []
         };
         this.exercisePresets = [];
+        this.kineticsMode = 'daily';
+        this.currentMissionIndex = parseInt(localStorage.getItem('hf-kinetics-level')) || 0;
+        this.completedMissionExercises = JSON.parse(localStorage.getItem('hf-kinetics-done') || '[]');
         this.currentState = 'med';
         // Timer state
         this.timerRunning = false;
@@ -992,6 +995,13 @@ class HabitForge {
         } catch (e) { console.error("Kinetics presets failed:", e); }
     }
 
+    setKineticsMode(mode) {
+        this.kineticsMode = mode;
+        document.getElementById('mode-daily').classList.toggle('active', mode === 'daily');
+        document.getElementById('mode-campaign').classList.toggle('active', mode === 'campaign');
+        this.renderKinetics();
+    }
+
     switchTab(tabId) {
         document.querySelectorAll('.main-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabId);
@@ -1001,7 +1011,6 @@ class HabitForge {
         });
         
         const targetView = tabId === 'rituals' ? 'rituals-view' : (tabId === 'kinetics' ? 'kinetics-view' : 'library-view');
-        // Note: archives uses the ritual-library-modal logic mostly, but we can treat it as a tab
         if (tabId === 'library') {
             document.getElementById('rituals-view').classList.remove('hidden');
             document.getElementById('ritual-library-modal-overlay')?.classList.remove('hidden');
@@ -1012,40 +1021,113 @@ class HabitForge {
 
     renderKinetics() {
         const grid = document.getElementById('kinetics-grid');
-        if (!grid) return;
+        const campaign = document.getElementById('campaign-view');
+        if (!grid || !campaign) return;
 
-        grid.innerHTML = this.exercisePresets.map(ex => `
-            <div class="reward-card exercise-card">
-                <span class="exercise-icon">${ex.icon}</span>
-                <span class="badge secondary small">${ex.energy} energy</span>
-                <h3>${ex.name}</h3>
-                <p class="exercise-desc">${ex.desc}</p>
-                <div class="card-actions">
-                    <span class="cost">${ex.reward} ✨</span>
-                    <button class="primary-btn small" onclick="window.app.completeExercise('${ex.name}', ${ex.reward})">Done</button>
+        if (this.kineticsMode === 'daily') {
+            grid.classList.remove('hidden');
+            campaign.classList.add('hidden');
+            grid.innerHTML = (this.exercisePresets || []).map(ex => `
+                <div class="reward-card exercise-card">
+                    <span class="exercise-icon">${ex.icon}</span>
+                    <span class="badge secondary small">${ex.energy} energy</span>
+                    <h3>${ex.name}</h3>
+                    <p class="exercise-desc">${ex.desc}</p>
+                    <div class="card-actions">
+                        <span class="cost">${ex.reward} ✨</span>
+                        <button class="primary-btn small" onclick="window.app.completeExercise('${ex.name}', ${ex.reward})">Done</button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            grid.classList.add('hidden');
+            campaign.classList.remove('hidden');
+            this.renderCampaign();
+        }
     }
 
-    async completeExercise(name, reward) {
+    renderCampaign() {
+        const mission = window.KINETICS_CAMPAIGN[this.currentMissionIndex];
+        if (!mission) return;
+
+        document.getElementById('current-mission-title').textContent = mission.title;
+        document.getElementById('current-mission-objective').textContent = mission.objective;
+        document.getElementById('mission-tip').textContent = mission.microHabit;
+
+        const list = document.getElementById('mission-exercises-list');
+        const progress = (this.completedMissionExercises.length / mission.exercises.length) * 100;
+        document.getElementById('mission-progress').style.width = progress + '%';
+
+        list.innerHTML = mission.exercises.map(ex => {
+            const isDone = this.completedMissionExercises.includes(ex.id);
+            return `
+                <div class="mission-exercise-card glass ${isDone ? 'done' : ''}" style="border-left: 5px solid ${ex.ui.color}">
+                    <div class="ex-info">
+                        <h4>${ex.name}</h4>
+                        <div class="ex-meta small muted">
+                            <span>${ex.sets}</span> | <span>Rest: ${ex.rest}</span>
+                        </div>
+                        <p class="ex-instruction small">${ex.instruction}</p>
+                        <div class="ex-cue small"><b>Cue:</b> ${ex.cue}</div>
+                    </div>
+                    <div class="ex-actions">
+                        <div class="xp-reward">+${ex.xp} XP</div>
+                        ${isDone ? 
+                            '<span class="badge secondary">SUCCESS</span>' : 
+                            `<button class="action-trigger-btn" onclick="window.app.completeMissionExercise('${ex.id}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}')">START</button>`
+                        }
+                    </div>
+                    <div class="alt-options tiny">
+                        <span>Alt: ${ex.easier} (Half XP)</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (this.completedMissionExercises.length === mission.exercises.length) {
+            list.innerHTML += `
+                <div class="next-level-area glass" style="text-align:center; padding: 20px; margin-top:20px;">
+                    <h3>MISSION ACCOMPLISHED 🏆</h3>
+                    <p class="small muted">You've mastered this level. Ready to proceed?</p>
+                    <button class="primary-btn" onclick="window.app.advanceMission()">Next Level</button>
+                </div>
+            `;
+        }
+    }
+
+    async completeMissionExercise(id, name, xp, essence, color) {
+        if (this.completedMissionExercises.includes(id)) return;
+        
         try {
-            const response = await fetch('/api/exercises/complete/', {
+            const resp = await fetch('/api/exercises/complete/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, reward })
+                body: JSON.stringify({ name: `Mission: ${name}`, reward: essence })
             });
-            if (response.ok) {
-                this.showToast(`🦾 ${name} COMPLETE! Gains detected.`, 'info');
+
+            if (resp.ok) {
+                this.completedMissionExercises.push(id);
+                localStorage.setItem('hf-kinetics-done', JSON.stringify(this.completedMissionExercises));
+                
+                this.showToast(`✨ ${xp} XP GAINED. ${name} SYNCED.`, 'info');
                 if (window.particles) {
-                    window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
+                    window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, color);
                 }
-                await this.loadData();
+                
+                // Track focus/xp locally for UI feedback
+                this.data.focusPoints += Math.floor(xp / 10);
                 this.render();
             }
-        } catch (e) {
-            console.error('Kinetics completion failed:', e);
-        }
+        } catch (e) { console.error(e); }
+    }
+
+    advanceMission() {
+        this.currentMissionIndex = (this.currentMissionIndex + 1) % window.KINETICS_CAMPAIGN.length;
+        this.completedMissionExercises = [];
+        localStorage.setItem('hf-kinetics-level', this.currentMissionIndex);
+        localStorage.setItem('hf-kinetics-done', '[]');
+        this.showToast('🚀 LEVEL UP! NEW MISSION ASSIGNED.', 'info');
+        this.render();
     }
 
     setupHoldToInitiate() {

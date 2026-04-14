@@ -2846,3 +2846,113 @@ body.brutal .main-tab.active {
     box-shadow: 4px 4px 0 #000;
 }
 
+/* 🦾 KINETICS CAMPAIGN & MISSIONS */
+.mode-toggle {
+    display: flex;
+    gap: 5px;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.mode-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+}
+
+.mode-btn.active {
+    background: var(--sun);
+    color: var(--dark-bg);
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255, 179, 0, 0.3);
+}
+
+.campaign-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: hfSlideUp 0.4s ease-out;
+}
+
+.mission-header {
+    padding: 20px;
+    border-radius: 20px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+}
+
+.progress-bar-wrap {
+    height: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--sun);
+    transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 10px var(--sun);
+}
+
+.mission-exercise-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px;
+    margin-bottom: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.mission-exercise-card.done {
+    opacity: 0.8;
+    background: rgba(129, 199, 132, 0.05);
+    border-left: 5px solid #81C784 !important;
+}
+
+.mission-exercise-card.done h4 {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.ex-info { flex: 1; }
+.ex-cue { color: var(--sun); margin-top: 8px; font-style: italic; }
+.xp-reward { font-size: 1.1rem; font-weight: bold; color: var(--sun); margin-bottom: 10px; }
+
+.action-trigger-btn {
+    padding: 10px 24px;
+    background: var(--sun);
+    color: var(--dark-bg);
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-trigger-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 179, 0, 0.4);
+}
+
+.action-trigger-btn:active { transform: scale(0.95); }
+
+.energy-model-tip {
+    padding: 12px;
+    text-align: center;
+    border-style: dashed;
+}
+
+@keyframes hfSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
