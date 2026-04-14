@@ -993,7 +993,7 @@ class HabitForge {
                 }, 600);
             } else {
                 const data = await response.json();
-                alert(data.msg || "Insufficient essence!");
+                this.showToast(data.msg || "Insufficient essence!", 'error');
             }
         } catch (e) {
             console.error('Redemption failed:', e);

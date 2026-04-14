@@ -23,9 +23,9 @@ class Kinetics3D {
     }
 
     initScene() {
-        this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-        this.camera.position.set(0, 1.8, 5);
-        this.camera.lookAt(0, 1, 0);
+        this.renderer.setSize(this.canvas.clientWidth || 800, this.canvas.clientHeight || 400);
+        this.camera.position.set(0, 1.2, 4); // Lower camera
+        this.camera.lookAt(0, 0.8, 0); // Look at center of mannequin
         
         // Mood Lighting
         const ambient = new THREE.AmbientLight(0x404040, 1.0);
@@ -34,13 +34,13 @@ class Kinetics3D {
         const hemi = new THREE.HemisphereLight(0x4FC3F7, 0x000000, 0.8);
         this.scene.add(hemi);
 
-        const rimLight = new THREE.PointLight(0x4FC3F7, 5, 20);
+        const rimLight = new THREE.PointLight(0x4FC3F7, 10, 50); // MUCH STRONGER
         rimLight.position.set(-5, 5, -5);
         this.scene.add(rimLight);
 
-        const fillLight = new THREE.PointLight(0xFFD600, 1, 10);
-        fillLight.position.set(5, 5, 5);
-        this.scene.add(fillLight);
+        const topLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        topLight.position.set(0, 10, 5);
+        this.scene.add(topLight);
 
         // Cyber Grid with Glow
         const grid = new THREE.GridHelper(20, 20, 0x4FC3F7, 0x111111);
@@ -145,7 +145,7 @@ class Kinetics3D {
         this.rLeg.upper.rotation.set(0,0,0);
         this.rLeg.lower.rotation.set(0,0,0);
         
-        this.baseMat.emissiveIntensity = 0.1;
+        this.baseMat.emissiveIntensity = 0.5; // PERSISTENT GLOW
     }
 
     animate() {
