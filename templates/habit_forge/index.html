@@ -87,23 +87,17 @@
                         <button id="timer-start" class="primary-btn">▶ Start</button>
                         <button id="timer-reset" class="secondary-btn">↺ Reset</button>
                     </div>
-                    <div class="audio-biome-grid">
-                        <button class="biome-btn" data-audio="lofi">
-                            <span class="biome-icon">🎧</span>
-                            <span>Cyber Cafe</span>
-                        </button>
-                        <button class="biome-btn" data-audio="nature">
-                            <span class="biome-icon">🌿</span>
-                            <span>Rainy Forest</span>
-                        </button>
-                        <button class="biome-btn" data-audio="focus">
-                            <span class="biome-icon">🎯</span>
-                            <span>Deep Flow</span>
-                        </button>
-                        <button class="biome-btn" data-audio="celestial">
-                            <span class="biome-icon">✨</span>
-                            <span>Stardust</span>
-                        </button>
+                    <div class="audio-control-panel" style="margin-top: 15px;">
+                        <label class="muted small" style="display:block; margin-bottom: 5px;">Cognitive Audio Stream</label>
+                        <select id="audio-genre-select" class="full-width" style="margin-bottom: 10px; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px;">
+                            <option value="piano">🎹 Classical Piano (Radio Swiss)</option>
+                            <option value="violin">🎻 Baroque & Violins (1.FM)</option>
+                            <option value="classical">🎼 Classic Mix (1.FM)</option>
+                            <option value="lofi">🎧 Lofi Chill Beats</option>
+                            <option value="ambient">🌌 Space Station Ambient (SomaFM)</option>
+                            <option value="drone">🧘 Deep Focus Drone (SomaFM)</option>
+                        </select>
+                        <button id="toggle-audio-btn" class="secondary-btn full-width">🎵 Play Stream</button>
                     </div>
                     <p id="timer-sessions" class="muted small" style="text-align:center;margin-top:8px;">Sessions: 0 🍅</p>
                 </section>

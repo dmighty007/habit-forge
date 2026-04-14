@@ -71,22 +71,14 @@ class HabitForge {
         this.currentAudioKey = null;
         this.currentAudioGenre = null;
         
-        // Audio Library - High Quality Cognitive/Classical (Piano & Violin)
+        // Audio Library - Extremely Reliable 24/7 HTTPS Streams
         this.AUDIO_LIBRARY = {
-            'lofi': [
-                'https://upload.wikimedia.org/wikipedia/commons/d/df/Debussy_-_Clair_de_Lune_%28played_by_Caio_Paggiaro%29.ogg',
-                'https://upload.wikimedia.org/wikipedia/commons/7/7b/Chopin_-_Nocturne_Op_9_No_2_E_Flat_Major.ogg'
-            ],
-            'nature': [
-                'https://upload.wikimedia.org/wikipedia/commons/2/23/Beethoven_Moonlight_1st_movement.ogg'
-            ],
-            'focus': [
-                'https://upload.wikimedia.org/wikipedia/commons/e/ea/Vivaldi_-_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg',
-                'https://upload.wikimedia.org/wikipedia/commons/e/e0/JS_Bach_-_Cello_Suite_1_-_i_prelude.ogg'
-            ],
-            'celestial': [
-                'https://upload.wikimedia.org/wikipedia/commons/4/4b/Satie_-_Gymnopedie_No_1_-_Kevin_MacLeod.ogg'
-            ]
+            'piano': 'https://stream.srg-ssr.ch/m/rsc_de/mp3_128', 
+            'violin': 'https://strm112.1.fm/baroque_mobile_mp3', 
+            'classical': 'https://strm112.1.fm/classical_mobile_mp3',
+            'lofi': 'https://streams.ilovemusic.de/iloveradio17.mp3', 
+            'ambient': 'https://ice1.somafm.com/spacestation-128-mp3', 
+            'drone': 'https://ice1.somafm.com/dronezone-128-mp3'
         };
 
         // Inject Toast styles
@@ -389,46 +381,27 @@ class HabitForge {
 
     // ─── AMBIENT AUDIO ───
     toggleAudio(genre) {
-        // Toggle biome selection (does NOT play — that happens on timer start)
-        if (this.currentAudioGenre === genre) {
-            // Deselect
-            this.currentAudioGenre = null;
-            if (this.currentAudio) {
-                this.currentAudio.pause();
-                this.currentAudio = null;
-            }
+        if (this.currentAudio && this.currentAudioGenre === genre && !this.currentAudio.paused) {
+            this.currentAudio.pause();
+            document.getElementById('toggle-audio-btn').textContent = '🎵 Play Stream';
         } else {
-            // Select new genre
             this.currentAudioGenre = genre;
-            // If timer is already running, switch audio immediately
-            if (this.timerRunning) {
-                this.playAudioForGenre(genre);
-            }
+            this.playAudioForGenre(genre);
+            const btn = document.getElementById('toggle-audio-btn');
+            if (btn) btn.textContent = '⏸ Pause Stream';
         }
-
-        document.querySelectorAll('.biome-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.audio === this.currentAudioGenre);
-        });
     }
 
     playAudioForGenre(genre) {
         if (this.currentAudio) this.currentAudio.pause();
 
-        const tracks = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['focus'];
-        let randomTrack;
-
-        if (tracks.length > 1) {
-            do {
-                randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-            } while (randomTrack === this.lastPlayedTrack);
-        } else {
-            randomTrack = tracks[0];
-        }
-
-        this.lastPlayedTrack = randomTrack;
-        this.currentAudio = new Audio(randomTrack);
-        this.currentAudio.loop = true;
-        this.currentAudio.play().catch(e => console.warn("Audio playback blocked:", e));
+        const streamUrl = this.AUDIO_LIBRARY[genre] || this.AUDIO_LIBRARY['lofi'];
+        
+        this.currentAudio = new Audio(streamUrl);
+        this.currentAudio.play().catch(e => {
+            console.warn("Audio playback blocked/failed:", e);
+            this.showToast('Audio blocked by browser. Please interact with the page first.', 'error');
+        });
 
         if (window.particles) {
             window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'var(--sun)');
@@ -523,8 +496,14 @@ class HabitForge {
         document.getElementById('brain-dump')?.addEventListener('input', () => this.saveBrainDump());
 
         // Audio controls
-        document.querySelectorAll('.biome-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.toggleAudio(btn.dataset.audio));
+        document.getElementById('toggle-audio-btn')?.addEventListener('click', () => {
+            const genre = document.getElementById('audio-genre-select').value;
+            this.toggleAudio(genre);
+        });
+        document.getElementById('audio-genre-select')?.addEventListener('change', (e) => {
+            if (this.currentAudio && !this.currentAudio.paused) {
+                this.playAudioForGenre(e.target.value); // switch immediately
+            }
         });
 
         // Gratitude / Water logic
