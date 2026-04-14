@@ -69,6 +69,10 @@ class HabitForge {
         this.completedMissionExercises = JSON.parse(localStorage.getItem('hf-kinetics-done') || '[]');
         this.currentState = 'med';
         this.speechSynth = window.speechSynthesis;
+        
+        // INTERCEPT ALL ALERTS: Force non-blocking toasts
+        window.alert = (msg) => this.showToast(msg, 'error');
+
         // Timer state
         this.timerRunning = false;
         this.timerInterval = null;
@@ -1056,6 +1060,11 @@ class HabitForge {
             document.getElementById('ritual-library-modal-overlay')?.classList.remove('hidden');
         } else {
             document.getElementById(targetView)?.classList.remove('hidden');
+        }
+
+        // Force 3D Resize when switching to kinetics
+        if (tabId === 'kinetics' && this.kinetics3D) {
+            setTimeout(() => this.kinetics3D.resize(), 50);
         }
     }
 
