@@ -3005,10 +3005,17 @@ body.brutal .main-tab.active {
 
 #timer-display {
     position: absolute;
-    font-size: 2.8rem;
+    font-size: 3.5rem;
     font-weight: 900;
     color: var(--sun);
-    text-shadow: 0 0 15px rgba(255, 214, 0, 0.5);
+    text-shadow: 0 0 20px rgba(255, 214, 0, 0.6);
+    font-family: 'Inter', sans-serif;
+    animation: hfScaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes hfScaleIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .btn-group-v {

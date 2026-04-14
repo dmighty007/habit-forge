@@ -28,10 +28,13 @@ class Kinetics3D {
         this.camera.lookAt(0, 1, 0);
         
         // Mood Lighting
-        const ambient = new THREE.AmbientLight(0x404040, 0.5);
+        const ambient = new THREE.AmbientLight(0x404040, 1.0);
         this.scene.add(ambient);
         
-        const rimLight = new THREE.PointLight(0x4FC3F7, 2, 10);
+        const hemi = new THREE.HemisphereLight(0x4FC3F7, 0x000000, 0.8);
+        this.scene.add(hemi);
+
+        const rimLight = new THREE.PointLight(0x4FC3F7, 5, 20);
         rimLight.position.set(-5, 5, -5);
         this.scene.add(rimLight);
 
@@ -50,16 +53,16 @@ class Kinetics3D {
         
         // Materials
         this.baseMat = new THREE.MeshStandardMaterial({ 
-            color: 0x1a1a1a, 
+            color: 0x222222, 
             emissive: 0x4FC3F7, 
-            emissiveIntensity: 0.1,
-            metalness: 0.8,
-            roughness: 0.2
+            emissiveIntensity: 0.8, // STARK GLOW
+            metalness: 0.9,
+            roughness: 0.1
         });
         this.muscleMat = new THREE.MeshStandardMaterial({ 
             color: 0x4FC3F7,
             emissive: 0x4FC3F7,
-            emissiveIntensity: 0.5,
+            emissiveIntensity: 2.0, // BRIGHT MUSCLE GLOW
             wireframe: false
         });
         this.jointMat = new THREE.MeshStandardMaterial({ color: 0xFFD600 });
@@ -82,7 +85,7 @@ class Kinetics3D {
         // Limbs function
         const createLimb = (len, w) => {
             const group = new THREE.Group();
-            const upper = this.createSegment(w, len/2, w, this.baseMat);
+            const upper = this.createSegment(w, len/2, w, this.muscleMat); // Muscles on upper
             const lower = this.createSegment(w*0.8, len/2, w*0.8, this.baseMat);
             upper.add(lower);
             lower.position.y = -len/2;
