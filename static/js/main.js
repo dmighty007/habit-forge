@@ -1015,31 +1015,6 @@ class HabitForge {
         const rect = btn.getBoundingClientRect();
         this.completeHabit(id, rect);
     }
-
-    renderRewards(category) {
-        const rewardList = document.getElementById('reward-list');
-        if (!rewardList) return;
-
-        const filtered = category === 'all' 
-            ? this.data.rewards 
-            : this.data.rewards.filter(r => r.category === category);
-
-        rewardList.innerHTML = (filtered || []).map(r => `
-            <div class="reward-card">
-                <div class="section-header" style="justify-content:space-between;">
-                    <span class="rarity-badge rarity-${r.rarity}">${r.rarity}</span>
-                    <span class="badge secondary small">${r.category}</span>
-                </div>
-                <h3>${r.icon || '🎁'} ${r.name}</h3>
-                <div class="card-actions">
-                    <span>✨ ${r.cost}</span>
-                    <button class="secondary-btn" ${this.data.essence < r.cost || r.unlocked ? 'disabled' : ''}>
-                        ${r.unlocked ? 'Unlocked' : 'Redeem'}
-                    </button>
-                </div>
-            </div>
-        `).join('') || '<p class="muted small">No items in this category.</p>';
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
