@@ -214,7 +214,11 @@
                             <div id="mission-3d-wrap" class="glass">
                                 <canvas id="kinetics-3d-canvas"></canvas>
                                 <div id="mission-timer-overlay" class="hidden">
-                                    <span id="timer-display">00:00</span>
+                                    <svg class="timer-ring" width="120" height="120">
+                                        <circle class="timer-ring-bg" cx="60" cy="60" r="54"></circle>
+                                        <circle class="timer-ring-progress" id="timer-ring-fill" cx="60" cy="60" r="54"></circle>
+                                    </svg>
+                                    <span id="timer-display">30</span>
                                 </div>
                             </div>
                             <div class="progress-bar-wrap">

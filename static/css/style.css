@@ -2960,18 +2960,14 @@ body.brutal .main-tab.active {
 
 #mission-3d-wrap {
     width: 100%;
-    height: 300px;
+    height: 380px;
     margin: 15px 0;
     position: relative;
     overflow: hidden;
-    border-radius: 16px;
-    background: radial-gradient(circle at center, rgba(79, 195, 247, 0.05), transparent);
-}
-
-#kinetics-3d-canvas {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
+    border-radius: 24px;
+    background: #050508;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 0 50px rgba(79, 195, 247, 0.1);
 }
 
 #mission-timer-overlay {
@@ -2979,23 +2975,40 @@ body.brutal .main-tab.active {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    padding: 20px 40px;
-    border-radius: 100px;
-    border: 2px solid var(--sun);
-    box-shadow: 0 0 30px rgba(255, 214, 0, 0.4);
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     pointer-events: none;
-    animation: hfPulse 2s infinite;
+}
+
+.timer-ring {
+    transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 8;
+}
+
+.timer-ring-progress {
+    fill: none;
+    stroke: var(--sun);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 339.292; /* 2 * PI * 54 */
+    stroke-dashoffset: 339.292;
+    transition: stroke-dashoffset 0.1s linear;
+    filter: drop-shadow(0 0 8px var(--sun));
 }
 
 #timer-display {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 3rem;
-    font-weight: 800;
+    position: absolute;
+    font-size: 2.8rem;
+    font-weight: 900;
     color: var(--sun);
-    text-shadow: 0 0 10px var(--sun);
+    text-shadow: 0 0 15px rgba(255, 214, 0, 0.5);
 }
 
 .btn-group-v {

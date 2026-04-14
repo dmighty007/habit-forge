@@ -64,9 +64,11 @@ class HabitForge {
         this.kinetics3D = null;
         this.missionTimer = null;
         this.missionTimeRemaining = 0;
+        this.missionTotalTime = 0;
         this.currentMissionIndex = parseInt(localStorage.getItem('hf-kinetics-level')) || 0;
         this.completedMissionExercises = JSON.parse(localStorage.getItem('hf-kinetics-done') || '[]');
         this.currentState = 'med';
+        this.speechSynth = window.speechSynthesis;
         // Timer state
         this.timerRunning = false;
         this.timerInterval = null;
@@ -796,10 +798,24 @@ class HabitForge {
         
         toastContainer.appendChild(toast);
         
+        // Audio Polish: Speak success/highlights
+        if (type === 'success' || message.includes('XP') || message.includes('LEVEL')) {
+            this.speak(message.split('.')[0]);
+        }
+
         setTimeout(() => {
             toast.style.animation = 'slideOutRight 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
+    }
+
+    speak(text) {
+        if (!this.speechSynth) return;
+        this.speechSynth.cancel(); // Don't queue up
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.05;
+        utterance.pitch = 0.95; // Slightly deeper, more professional
+        this.speechSynth.speak(utterance);
     }
 
     render() {
@@ -1150,25 +1166,47 @@ class HabitForge {
         } catch (e) { console.error(e); }
     }
 
-    startMissionExercise(id, anim, name, xp, essence, color, seconds) {
-        if (!this.kinetics3D) {
-            this.initKinetics3D();
-        }
-        if (this.kinetics3D) {
-            this.kinetics3D.setAnimation(anim);
-        }
-
-        // Show Timer
+    async startMissionExercise(id, anim, name, xp, essence, color, seconds) {
+        if (!this.kinetics3D) { this.initKinetics3D(); }
+        
         const timerWrap = document.getElementById('mission-timer-overlay');
         if (timerWrap) timerWrap.classList.remove('hidden');
 
+        // PREP COUNTDOWN (3s)
+        let prep = 3;
+        this.updateTimerDisplay(prep, 3);
+        this.speak("Prepare");
+        
+        const prepInt = setInterval(() => {
+            prep--;
+            if (prep > 0) {
+                this.updateTimerDisplay(prep, 3);
+                this.speak(prep.toString());
+            } else {
+                clearInterval(prepInt);
+                this.speak("Go!");
+                this.runMissionTimer(id, anim, name, xp, essence, color, seconds);
+            }
+        }, 1000);
+    }
+
+    runMissionTimer(id, anim, name, xp, essence, color, seconds) {
+        if (this.kinetics3D) { this.kinetics3D.setAnimation(anim); }
+
         this.missionTimeRemaining = parseInt(seconds) || 30;
+        this.missionTotalTime = this.missionTimeRemaining;
         this.updateTimerDisplay();
 
         if (this.missionTimer) clearInterval(this.missionTimer);
         this.missionTimer = setInterval(() => {
             this.missionTimeRemaining--;
             this.updateTimerDisplay();
+            
+            // Audio Cue for last 3s
+            if (this.missionTimeRemaining <= 3 && this.missionTimeRemaining > 0) {
+                this.speak(this.missionTimeRemaining.toString());
+            }
+
             if (this.missionTimeRemaining <= 0) {
                 clearInterval(this.missionTimer);
                 this.completeMissionExercise(id, name, xp, essence, color);
@@ -1182,12 +1220,18 @@ class HabitForge {
         if (this.kinetics3D) this.kinetics3D.setAnimation(null);
     }
 
-    updateTimerDisplay() {
-        const el = document.getElementById('timer-display');
-        if (!el) return;
-        const mins = Math.floor(this.missionTimeRemaining / 60);
-        const secs = this.missionTimeRemaining % 60;
-        el.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    updateTimerDisplay(current = this.missionTimeRemaining, total = this.missionTotalTime) {
+        const display = document.getElementById('timer-display');
+        const fill = document.getElementById('timer-ring-fill');
+        if (!display || !fill) return;
+
+        display.textContent = Math.ceil(current);
+        
+        // Ring offset calculation
+        const circumference = 339.292;
+        const progress = current / total;
+        const offset = circumference - (progress * circumference);
+        fill.style.strokeDashoffset = offset;
     }
 
     advanceMission() {

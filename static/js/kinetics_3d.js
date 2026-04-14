@@ -1,6 +1,7 @@
 /**
  * kinetics_3d.js
- * Procedural 3D Mannequin Engine for Bio-Forge Kinetics 2.0
+ * Advanced Musculoskeletal 3D Engine for Bio-Forge Kinetics 2.5
+ * Uses stylized procedural geometry and muscle-glow effects.
  */
 
 class Kinetics3D {
@@ -9,9 +10,9 @@ class Kinetics3D {
         if (!this.canvas) return;
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(40, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: false, antialias: true });
-        this.renderer.setClearColor(0x0a0a0f, 1);
+        this.renderer.setClearColor(0x050508, 1);
         
         this.initScene();
         this.createMannequin();
@@ -23,64 +24,100 @@ class Kinetics3D {
 
     initScene() {
         this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-        this.camera.position.set(0, 1.5, 4);
+        this.camera.position.set(0, 1.8, 5);
+        this.camera.lookAt(0, 1, 0);
         
-        const light = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(light);
+        // Mood Lighting
+        const ambient = new THREE.AmbientLight(0x404040, 0.5);
+        this.scene.add(ambient);
         
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 10, 5);
-        this.scene.add(directionalLight);
+        const rimLight = new THREE.PointLight(0x4FC3F7, 2, 10);
+        rimLight.position.set(-5, 5, -5);
+        this.scene.add(rimLight);
 
-        // Grid/Floor for reference
-        const grid = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+        const fillLight = new THREE.PointLight(0xFFD600, 1, 10);
+        fillLight.position.set(5, 5, 5);
+        this.scene.add(fillLight);
+
+        // Cyber Grid with Glow
+        const grid = new THREE.GridHelper(20, 20, 0x4FC3F7, 0x111111);
+        grid.position.y = -0.01;
         this.scene.add(grid);
     }
 
     createMannequin() {
         this.mannequin = new THREE.Group();
         
-        // Materials (Neon theme-aware)
-        const skinMat = new THREE.MeshPhongMaterial({ color: 0x4FC3F7, wireframe: false, shininess: 100 });
-        const jointMat = new THREE.MeshPhongMaterial({ color: 0xFFD600 });
+        // Materials
+        this.baseMat = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a, 
+            emissive: 0x4FC3F7, 
+            emissiveIntensity: 0.1,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        this.muscleMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4FC3F7,
+            emissive: 0x4FC3F7,
+            emissiveIntensity: 0.5,
+            wireframe: false
+        });
+        this.jointMat = new THREE.MeshStandardMaterial({ color: 0xFFD600 });
 
-        // Torso
-        this.torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.3), skinMat);
-        this.torso.position.y = 1.2;
+        // Build Skeleton
+        this.torso = this.createSegment(0.6, 0.9, 0.3, this.baseMat);
+        this.torso.position.y = 1.3;
         this.mannequin.add(this.torso);
 
+        // Core / Hips
+        this.hips = this.createSegment(0.5, 0.2, 0.25, this.baseMat);
+        this.hips.position.y = -0.55;
+        this.torso.add(this.hips);
+
         // Head
-        this.head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), skinMat);
-        this.head.position.y = 0.6;
+        this.head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 24, 24), this.baseMat);
+        this.head.position.y = 0.65;
         this.torso.add(this.head);
 
-        // Arms (simplified joints)
-        this.leftArm = this.createLimb(0.15, 0.5, skinMat);
-        this.leftArm.position.set(-0.35, 0.3, 0);
-        this.torso.add(this.leftArm);
+        // Limbs function
+        const createLimb = (len, w) => {
+            const group = new THREE.Group();
+            const upper = this.createSegment(w, len/2, w, this.baseMat);
+            const lower = this.createSegment(w*0.8, len/2, w*0.8, this.baseMat);
+            upper.add(lower);
+            lower.position.y = -len/2;
+            group.add(upper);
+            return { group, upper, lower };
+        };
 
-        this.rightArm = this.createLimb(0.15, 0.5, skinMat);
-        this.rightArm.position.set(0.35, 0.3, 0);
-        this.torso.add(this.rightArm);
+        // Arms
+        this.lArm = createLimb(0.8, 0.15);
+        this.lArm.group.position.set(-0.35, 0.35, 0);
+        this.torso.add(this.lArm.group);
+
+        this.rArm = createLimb(0.8, 0.15);
+        this.rArm.group.position.set(0.35, 0.35, 0);
+        this.torso.add(this.rArm.group);
 
         // Legs
-        this.leftLeg = this.createLimb(0.2, 0.7, skinMat);
-        this.leftLeg.position.set(-0.15, -0.4, 0);
-        this.torso.add(this.leftLeg);
+        this.lLeg = createLimb(1.2, 0.22);
+        this.lLeg.group.position.set(-0.16, -0.1, 0);
+        this.hips.add(this.lLeg.group);
 
-        this.rightLeg = this.createLimb(0.2, 0.7, skinMat);
-        this.rightLeg.position.set(0.15, -0.4, 0);
-        this.torso.add(this.rightLeg);
+        this.rLeg = createLimb(1.2, 0.22);
+        this.rLeg.group.position.set(0.16, -0.1, 0);
+        this.hips.add(this.rLeg.group);
 
         this.scene.add(this.mannequin);
     }
 
-    createLimb(width, height, mat) {
-        const group = new THREE.Group();
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, width), mat);
-        mesh.position.y = -height / 2;
-        group.add(mesh);
-        return group;
+    createSegment(w, h, d, mat) {
+        const geo = new THREE.BoxGeometry(w, h, d);
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = -h / 2; // Pivot at top
+        const pivot = new THREE.Group();
+        pivot.add(mesh);
+        return pivot;
     }
 
     setAnimation(type) {
@@ -91,52 +128,76 @@ class Kinetics3D {
     resetPose() {
         this.mannequin.position.set(0, 0, 0);
         this.mannequin.rotation.set(0, 0, 0);
-        this.torso.position.y = 1.2;
+        this.torso.position.y = 1.3;
         this.torso.rotation.set(0,0,0);
-        this.leftArm.rotation.set(0,0,0);
-        this.rightArm.rotation.set(0,0,0);
-        this.leftLeg.rotation.set(0,0,0);
-        this.rightLeg.rotation.set(0,0,0);
+        this.hips.rotation.set(0,0,0);
+        
+        this.lArm.upper.rotation.set(0,0,0);
+        this.lArm.lower.rotation.set(0,0,0);
+        this.rArm.upper.rotation.set(0,0,0);
+        this.rArm.lower.rotation.set(0,0,0);
+        
+        this.lLeg.upper.rotation.set(0,0,0);
+        this.lLeg.lower.rotation.set(0,0,0);
+        this.rLeg.upper.rotation.set(0,0,0);
+        this.rLeg.lower.rotation.set(0,0,0);
+        
+        this.baseMat.emissiveIntensity = 0.1;
     }
 
     animate() {
         requestAnimationFrame(() => this.animate());
         
         const time = this.clock.getElapsedTime();
-        const cycle = (Math.sin(time * 3) + 1) / 2; // 0 to 1 loop
+        const cycle = (Math.sin(time * 3) + 1) / 2; // Smooth 0-1
+        const fastCycle = (Math.sin(time * 6) + 1) / 2;
 
         if (this.currentAnim === 'squat') {
-            this.torso.position.y = 1.2 - (cycle * 0.6);
-            this.leftLeg.rotation.x = -cycle * 1.5;
-            this.rightLeg.rotation.x = -cycle * 1.5;
-            this.leftArm.rotation.x = cycle * 1.2;
-            this.rightArm.rotation.x = cycle * 1.2;
-        } else if (this.currentAnim === 'pushup') {
-            this.mannequin.rotation.x = -Math.PI / 2.5;
-            this.mannequin.position.y = 0.5 + (cycle * 0.3);
-            this.leftArm.rotation.x = -cycle * 1.2;
-            this.rightArm.rotation.x = -cycle * 1.2;
-        } else if (this.currentAnim === 'plank') {
-            this.mannequin.rotation.x = -Math.PI / 2.5;
-            this.mannequin.position.y = 0.6 + (Math.sin(time * 5) * 0.02); // Breathing pulse
-        } else if (this.currentAnim === 'jacks') {
-            const jackCycle = (Math.sin(time * 6) + 1) / 2;
-            this.leftArm.rotation.z = jackCycle * 2.5;
-            this.rightArm.rotation.z = -jackCycle * 2.5;
-            this.leftLeg.rotation.z = jackCycle * 0.5;
-            this.rightLeg.rotation.z = -jackCycle * 0.5;
-        } else if (this.currentAnim === 'bridge') {
-             this.mannequin.rotation.x = Math.PI / 2;
-             this.mannequin.position.y = 0.3 + (cycle * 0.6);
-        } else if (this.currentAnim === 'curl') {
-             this.leftArm.rotation.x = cycle * 2;
-             this.rightArm.rotation.x = cycle * 2;
+            const bend = cycle * 1.5;
+            this.torso.position.y = 1.3 - (cycle * 0.8);
+            this.lLeg.upper.rotation.x = -bend;
+            this.lLeg.lower.rotation.x = bend * 1.5;
+            this.rLeg.upper.rotation.x = -bend;
+            this.rLeg.lower.rotation.x = bend * 1.5;
+            this.torso.rotation.x = cycle * 0.3;
+            this.muscleMat.emissiveIntensity = 0.5 + cycle;
+        } 
+        else if (this.currentAnim === 'pushup') {
+            this.mannequin.rotation.x = -Math.PI / 2.2;
+            this.mannequin.position.y = 0.4 + (cycle * 0.5);
+            this.lArm.upper.rotation.x = cycle * 1.8;
+            this.lArm.lower.rotation.x = -cycle * 2;
+            this.rArm.upper.rotation.x = cycle * 1.8;
+            this.rArm.lower.rotation.x = -cycle * 2;
+        }
+        else if (this.currentAnim === 'plank') {
+            this.mannequin.rotation.x = -Math.PI / 2.2;
+            this.mannequin.position.y = 0.5 + (Math.sin(time * 4) * 0.02);
+            this.baseMat.emissiveIntensity = 0.2 + (Math.sin(time * 4) * 0.2);
+        }
+        else if (this.currentAnim === 'jacks') {
+            const armBend = fastCycle * 2.5;
+            this.lArm.upper.rotation.z = armBend;
+            this.rArm.upper.rotation.z = -armBend;
+            this.lLeg.upper.rotation.z = fastCycle * 0.6;
+            this.rLeg.upper.rotation.z = -fastCycle * 0.6;
+        }
+        else if (this.currentAnim === 'bridge') {
+            this.mannequin.rotation.x = Math.PI / 2;
+            this.hips.rotation.x = -cycle * 1.2;
+            this.mannequin.position.y = 0.2 + (cycle * 0.6);
+        }
+        else if (this.currentAnim === 'leg_raise') {
+             this.mannequin.rotation.x = Math.PI / 2.5;
+             this.lLeg.upper.rotation.x = -cycle * 1.6;
+             this.rLeg.upper.rotation.x = -cycle * 1.6;
         }
 
         this.renderer.render(this.scene, this.camera);
     }
 
     resize() {
+        if (!this.canvas) return;
         this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
