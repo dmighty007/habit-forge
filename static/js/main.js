@@ -62,13 +62,81 @@ class HabitForge {
         this.exercisePresets = [];
         this.kineticsMode = 'daily';
         this.kinetics3D = null;
+        this.kineticsFallback = null;
         this.missionTimer = null;
+        this.missionPrepTimer = null;
         this.missionTimeRemaining = 0;
         this.missionTotalTime = 0;
+        this.missionPaused = false;
+        this.currentExerciseParams = null; // Store for restart logic
         this.currentMissionIndex = parseInt(localStorage.getItem('hf-kinetics-level')) || 0;
+        this.viewingMissionIndex = this.currentMissionIndex;
         this.completedMissionExercises = JSON.parse(localStorage.getItem('hf-kinetics-done') || '[]');
+        this.exerciseHistory = JSON.parse(localStorage.getItem('hf-kinetics-history') || '{}');
+        this.historyViewDate = new Date().toISOString().split('T')[0];
+        this.restlessModeEnabled = localStorage.getItem('hf-kinetics-restless-mode') === 'true';
+        this.restlessActive = false;
+        this.restlessQueue = [];
         this.currentState = 'med';
         this.speechSynth = window.speechSynthesis;
+        this.restlessVoiceLine = this.speechSynth ? 'Voice guide ready' : 'Voice unavailable';
+        this.userPersona = localStorage.getItem('hf-user-persona') || 'male';
+        this.coachVoiceEnabled = localStorage.getItem('hf-coach-voice') !== 'false';
+        window.KINETICS_CAMPAIGN = (window.KINETICS_DATA && window.KINETICS_DATA[this.userPersona]) || window.MALE_CAMPAIGN || [];
+
+        this.missionNarrationState = {
+            halfwaySpoken: false,
+            tenSecondSpoken: false
+        };
+        this.exerciseDemoLibrary = {
+            pushup: { src: '/static/media/kinetics_generated/pushup-demo.gif', caption: 'High-intensity push-up flow.' },
+            pushup_incline: { src: '/static/media/kinetics_generated/local_incline_pushup.gif', caption: 'Incline push-up flow.' },
+            squat: { src: '/static/media/kinetics_generated/squat-demo.gif', caption: 'Deep squat form.' },
+            jacks: { src: '/static/media/kinetics_generated/jacks-demo.gif', caption: 'Full body aerobic warm-up.' },
+            leg_raise: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Lower abdominal focus.' },
+            plank: { src: '/static/media/kinetics_generated/plank-demo.gif', caption: 'Core isometric hold.' },
+            dips: { src: '/static/media/kinetics_generated/local_dips.gif', caption: 'Triceps focused dip.' },
+            row: { src: '/static/media/kinetics_generated/local_row.gif', caption: 'Back stabilization row.' },
+            curl: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Bicep isolation.' },
+            lunge: { src: '/static/media/kinetics_generated/lunge-demo.gif', caption: 'Forward stepping lunge.' },
+            bridge: { src: '/static/media/kinetics_generated/local_bridge.gif', caption: 'Glute and hamstring activation.' },
+            calf_raise: { src: '/static/media/kinetics_generated/local_calf_raise.gif', caption: 'Calf isolation movement.' },
+            stretch: { src: '/static/media/kinetics_generated/stretch-demo.gif', caption: 'Recovery stretching.' },
+            stretch_easy: { src: '/static/media/kinetics_generated/stretch-demo.gif', caption: 'Gentle mobility flow.' },
+            walk: { src: '/static/media/kinetics_generated/local_walk.gif', caption: 'Light aerobic activity.' },
+            breathe: { src: '/static/media/kinetics_generated/breathe-demo.gif', caption: 'Parasympathetic focus.' },
+            jump_squat: { src: '/static/media/kinetics_generated/local_jump_squat.gif', caption: 'Explosive lower body movement.' },
+            plank_taps: { src: '/static/media/kinetics_generated/local_plank_taps.gif', caption: 'Core anti-rotation.' },
+            climber: { src: '/static/media/kinetics_generated/local_climber.gif', caption: 'Dynamic core movement.' },
+            pushup_slow: { src: '/static/media/kinetics_generated/pushup-demo.gif', caption: 'Eccentric focus push-up.' },
+            squat_slow: { src: '/static/media/kinetics_generated/squat-demo.gif', caption: 'Eccentric focus squat.' },
+            wall_sit: { src: '/static/media/kinetics_generated/local_wall_sit.gif', caption: 'Isometric quad hold.' },
+            side_plank: { src: '/static/media/kinetics_generated/local_side_plank.gif', caption: 'Oblique isometric hold.' },
+            dance: { src: '/static/media/kinetics_generated/generic-demo.gif', caption: 'Keep it playful and keep moving.' },
+            // Female specific mappings
+            dead_bug: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Core stability and coordination.' },
+            heel_tap: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Oblique and lower core focus.' },
+            clamshell: { src: '/static/media/kinetics_generated/local_bridge.gif', caption: 'Hip and outer glute activation.' },
+            bird_dog: { src: '/static/media/kinetics_generated/plank-demo.gif', caption: 'Full chain stability.' },
+            punch: { src: '/static/media/kinetics_generated/jacks-demo.gif', caption: 'Dynamic arm movement.' },
+            tricep_ext: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Tricep isolation.' },
+            kickback: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Tricep sculpting.' },
+            lateral_raise: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Shoulder toning.' },
+            front_raise: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Front shoulder focus.' },
+            press: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Vertical push strength.' },
+            chest_press: { src: '/static/media/kinetics_generated/local_curl.gif', caption: 'Lying chest focus.' },
+            reverse_fly: { src: '/static/media/kinetics_generated/local_row.gif', caption: 'Rear delt and upper back focus.' },
+            arm_circles: { src: '/static/media/kinetics_generated/stretch-demo.gif', caption: 'Shoulder mobility.' },
+            walk_fast: { src: '/static/media/kinetics_generated/local_walk.gif', caption: 'Energized walking pace.' },
+            step_touch: { src: '/static/media/kinetics_generated/jacks-demo.gif', caption: 'Side-to-side step pattern.' },
+            punch_cross: { src: '/static/media/kinetics_generated/jacks-demo.gif', caption: 'Cross-body punch combination.' },
+            crunch_seated: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Seated core contraction.' },
+            bridge_hold: { src: '/static/media/kinetics_generated/local_bridge.gif', caption: 'Static glute bridge hold.' },
+            plank_wall: { src: '/static/media/kinetics_generated/plank-demo.gif', caption: 'Wall plank hold.' },
+            reverse_march: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Supine reverse march.' },
+            leg_raise_side: { src: '/static/media/kinetics_generated/leg-raise-demo.gif', caption: 'Side-lying leg lift.' },
+            generic: { src: '/static/media/kinetics_generated/generic-demo.gif', caption: 'Follow the exercise cues.' }
+        };
         
         // INTERCEPT ALL ALERTS: Force non-blocking toasts
         window.alert = (msg) => this.showToast(msg, 'error');
@@ -105,13 +173,127 @@ class HabitForge {
         this.init();
     }
 
+    initSettingsModal() {
+        const avatarBtn = document.getElementById('user-avatar-btn');
+        const modal = document.getElementById('settings-modal-overlay');
+        const closeBtn = document.getElementById('close-settings-btn');
+        const saveBtn = document.getElementById('save-settings-btn');
+        const voiceBtns = document.querySelectorAll('[data-voice]');
+        const personaCards = document.querySelectorAll('[data-persona]');
+
+        if (avatarBtn && modal) {
+            avatarBtn.onclick = () => {
+                this.updateSettingsUI();
+                modal.classList.remove('hidden');
+            };
+        }
+
+        const gearBtn = document.getElementById('open-settings-btn');
+        if (gearBtn && modal) {
+            gearBtn.onclick = () => {
+                this.updateSettingsUI();
+                modal.classList.remove('hidden');
+            };
+        }
+
+        if (closeBtn && modal) {
+            closeBtn.onclick = () => modal.classList.add('hidden');
+        }
+
+        voiceBtns.forEach(btn => {
+            btn.onclick = () => {
+                voiceBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+        });
+
+        personaCards.forEach(card => {
+            card.onclick = () => {
+                personaCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+            };
+        });
+
+        if (saveBtn) {
+            saveBtn.onclick = () => {
+                this.saveCoachSettings();
+                modal.classList.add('hidden');
+            };
+        }
+    }
+
+    updateSettingsUI() {
+        const voiceBtns = document.querySelectorAll('[data-voice]');
+        voiceBtns.forEach(btn => {
+            if (btn.dataset.voice === (this.coachVoiceEnabled ? 'on' : 'off')) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        const personaCards = document.querySelectorAll('[data-persona]');
+        personaCards.forEach(card => {
+            if (card.dataset.persona === this.userPersona) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
+
+    saveCoachSettings() {
+        const activeVoice = document.querySelector('[data-voice].active')?.dataset.voice;
+        const activePersona = document.querySelector('[data-persona].active')?.dataset.persona;
+
+        const oldPersona = this.userPersona;
+        this.coachVoiceEnabled = activeVoice === 'on';
+        this.userPersona = activePersona || 'male';
+
+        localStorage.setItem('hf-coach-voice', this.coachVoiceEnabled);
+        localStorage.setItem('hf-user-persona', this.userPersona);
+
+        window.KINETICS_CAMPAIGN = window.KINETICS_DATA[this.userPersona] || window.KINETICS_DATA.male;
+        this.showToast(`Neural Lab updated to ${this.userPersona.toUpperCase()}`, "success");
+
+        if (oldPersona !== this.userPersona) {
+            this.currentMissionIndex = 0;
+            this.viewingMissionIndex = 0;
+            localStorage.setItem('hf-kinetics-level', 0);
+            
+            if (this.kineticsMode === 'campaign') {
+                this.initKineticsCampaign();
+            } else {
+                this.renderDailyKinetics();
+            }
+        }
+    }
+
+    getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     async init() {
+        this.validateStateConsistency();
         this.restoreTheme();
         this.restoreBrainDump();
         this.showRandomFortune();
         await this.loadData();
         await this.fetchExercisePresets();
         this.setupListeners();
+        this.initSettingsModal();
+        this.updateSettingsUI();
         this.restoreImpulseLot();
         this.render();
         this.fetchRhythmData();
@@ -199,14 +381,17 @@ class HabitForge {
         
         // Aura Mode Activation
         document.body.classList.add('aura-active');
-        if (!document.getElementById('aura-overlay')) {
-            const overlay = document.createElement('div');
-            overlay.id = 'aura-overlay';
-            document.body.appendChild(overlay);
-            
+        document.getElementById('aura-overlay')?.classList.remove('hidden');
+        if (!document.querySelector('.aura-breathing')) {
             const breathing = document.createElement('div');
             breathing.className = 'aura-breathing';
             document.body.appendChild(breathing);
+        }
+        if (!document.getElementById('aura-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'aura-overlay';
+            overlay.className = 'aura-overlay';
+            document.body.appendChild(overlay);
         }
 
         // Auto-start audio if a biome is selected
@@ -216,7 +401,7 @@ class HabitForge {
 
         this.timerInterval = setInterval(() => {
             this.timerSeconds--;
-            this.updateTimerDisplay();
+            this.updateFocusTimerDisplay();
 
             if (this.timerSeconds <= 0) {
                 this.timerComplete();
@@ -258,7 +443,7 @@ class HabitForge {
             document.querySelectorAll('.biome-btn').forEach(b => b.classList.remove('active'));
         }
 
-        this.updateTimerDisplay();
+        this.updateFocusTimerDisplay();
         const badge = document.getElementById('timer-mode-badge');
         if (badge) badge.textContent = 'work';
     }
@@ -289,7 +474,7 @@ class HabitForge {
         if (btn) btn.textContent = '▶ Start';
         const badge = document.getElementById('timer-mode-badge');
         if (badge) badge.textContent = this.timerMode;
-        this.updateTimerDisplay();
+        this.updateFocusTimerDisplay();
         this.renderAchievements();
 
         const sessionsEl = document.getElementById('timer-sessions');
@@ -299,7 +484,7 @@ class HabitForge {
         document.body.classList.remove("aura-active");
     }
 
-    updateTimerDisplay() {
+    updateFocusTimerDisplay() {
         const mins = Math.floor(this.timerSeconds / 60);
         const secs = this.timerSeconds % 60;
         const display = document.getElementById('timer-display');
@@ -459,7 +644,10 @@ class HabitForge {
         // Pro Persistence: Save to backend
         fetch('/api/impulse/save/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken()
+            },
             body: JSON.stringify({ content: el.value })
         }).catch(err => console.warn("Backend impulse save failed, using local only."));
     }
@@ -467,7 +655,10 @@ class HabitForge {
     // ─── BURNOUT SHIELD ───
     async toggleVacationMode() {
         try {
-            const response = await fetch('/api/vacation/toggle/', { method: 'POST' });
+            const response = await fetch('/api/vacation/toggle/', { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             const result = await response.json();
             this.data.vacationActive = result.vacationActive;
             this.data.vacationUntil = result.vacationUntil;
@@ -541,6 +732,13 @@ class HabitForge {
                 this.playAudioForGenre(e.target.value); // switch immediately
             }
         });
+        // Mission / Kinetics Controls
+        document.getElementById('restless-toggle-btn')?.addEventListener('click', () => this.toggleRestlessMode());
+        document.getElementById('restless-start-btn')?.addEventListener('click', () => this.toggleRestlessRun());
+        document.getElementById('mission-pause-btn')?.addEventListener('click', () => this.toggleMissionPause());
+        document.getElementById('mission-restart-btn')?.addEventListener('click', () => this.restartMissionExercise());
+        document.getElementById('toggle-3d-btn')?.addEventListener('click', () => this.toggleKinetics3D());
+        document.getElementById('tree-stage')?.addEventListener('click', () => this.onTreeClick());
 
         // Gratitude / Water logic
         document.getElementById('water-tree-btn')?.addEventListener('click', () => {
@@ -562,7 +760,7 @@ class HabitForge {
         // ─── FEATURE RAMPAGE LISTENERS ───
         document.getElementById('ritual-library-btn')?.addEventListener('click', () => this.showRitualLibrary());
         document.getElementById('close-library-btn')?.addEventListener('click', () => {
-            document.getElementById('library-modal-overlay')?.classList.add('hidden');
+            this.switchTab('rituals');
         });
         document.getElementById('impulse-input')?.addEventListener('input', () => this.saveImpulseLot());
 
@@ -611,7 +809,10 @@ class HabitForge {
         try {
             await fetch('/api/habits/add/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
                 body: JSON.stringify({
                     name: p.name,
                     sustainable: p.sustainable,
@@ -630,7 +831,10 @@ class HabitForge {
 
     async completeQuest(id) {
         try {
-            const response = await fetch(`/api/quests/complete/${id}/`, { method: 'POST' });
+            const response = await fetch(`/api/quests/complete/${id}/`, { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 await this.loadData();
                 this.render();
@@ -649,11 +853,17 @@ class HabitForge {
             // Log the win
             await fetch('/api/daily-win/add/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
                 body: JSON.stringify({ content })
             });
             // Water the tree
-            const response = await fetch('/api/tree/water/', { method: 'POST' });
+            const response = await fetch('/api/tree/water/', { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 await this.loadData();
                 this.render();
@@ -674,7 +884,10 @@ class HabitForge {
         const energyMap = { 'low': 30, 'med': 60, 'high': 100 };
         await fetch('/api/energy/update/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken()
+            },
             body: JSON.stringify({ energy: energyMap[state] })
         });
 
@@ -683,7 +896,10 @@ class HabitForge {
 
     async initHealthyWeek() {
         try {
-            const response = await fetch('/api/seed-healthy-week/', { method: 'POST' });
+            const response = await fetch('/api/seed-healthy-week/', { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 await this.loadData();
                 this.render();
@@ -697,7 +913,10 @@ class HabitForge {
         try {
             const response = await fetch('/api/todos/add/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
                 body: JSON.stringify({ title, energy_required: this.currentState })
             });
             if (response.ok) {
@@ -711,7 +930,10 @@ class HabitForge {
 
     async toggleTodo(id) {
         try {
-            const response = await fetch(`/api/todos/toggle/${id}/`, { method: 'POST' });
+            const response = await fetch(`/api/todos/toggle/${id}/`, { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 await this.loadData();
                 this.render();
@@ -741,7 +963,10 @@ class HabitForge {
         try {
             const response = await fetch('/api/habits/add/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
                 body: JSON.stringify(newHabit)
             });
             
@@ -759,7 +984,10 @@ class HabitForge {
 
     async completeHabit(id, rect) {
         try {
-            const response = await fetch(`/api/habits/complete/${id}/`, { method: 'POST' });
+            const response = await fetch(`/api/habits/complete/${id}/`, { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 if (window.particles) {
                     window.particles.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 'rgb(188, 140, 255)');
@@ -803,7 +1031,7 @@ class HabitForge {
         toastContainer.appendChild(toast);
         
         // Audio Polish: Speak success/highlights
-        if (type === 'success' || message.includes('XP') || message.includes('LEVEL')) {
+        if (!this.restlessActive && (type === 'success' || message.includes('XP') || message.includes('LEVEL'))) {
             this.speak(message.split('.')[0]);
         }
 
@@ -813,12 +1041,29 @@ class HabitForge {
         }, 3000);
     }
 
-    speak(text) {
-        if (!this.speechSynth) return;
-        this.speechSynth.cancel(); // Don't queue up
+    speak(text, options = {}) {
+        if (!this.coachVoiceEnabled || !this.speechSynth || !text) return;
+        const { interrupt = false, rate = 0.92, pitch = 1.0, volume = 0.9 } = options;
+        
+        // If we are already speaking a long form wisdom, don't interrupt unless it is an urgent command
+        if (this.speechSynth.speaking && !interrupt) return;
+        
+        if (interrupt) this.speechSynth.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.05;
-        utterance.pitch = 0.95; // Slightly deeper, more professional
+        const voices = this.speechSynth.getVoices();
+        
+        // Prefer natural sounding voices
+        const preferredVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) 
+                            || voices.find(v => v.name.includes('Natural'))
+                            || voices.find(v => v.lang.startsWith('en'))
+                            || voices[0];
+        
+        if (preferredVoice) utterance.voice = preferredVoice;
+        utterance.rate = rate; // Slightly slower for empathy
+        utterance.pitch = pitch;
+        utterance.volume = volume;
+        
         this.speechSynth.speak(utterance);
     }
 
@@ -921,7 +1166,7 @@ class HabitForge {
             const questList = document.getElementById('quest-list');
             if (questList) {
                 questList.innerHTML = (this.data.quests || []).map(q => `
-                    <div class="quest-card ${q.is_completed ? 'completed' : ''}" onclick="window.app.completeQuest(${q.id})">
+                    <div class="quest-card ${q.is_completed ? 'completed' : ''}" ${q.is_completed ? '' : `onclick="window.app.completeQuest(${q.id})"`}>
                         <span class="quest-cat">${q.category}</span>
                         <h4>${q.title}</h4>
                         <p class="muted small">${q.description}</p>
@@ -932,9 +1177,10 @@ class HabitForge {
             }
 
             // Render new features
-            this.renderAchievements();
-            this.updateTimerDisplay();
             this.renderKinetics();
+            this.renderHistory();
+            this.renderAchievements();
+            this.updateFocusTimerDisplay();
         } catch (e) {
             console.error('Render error:', e);
         }
@@ -975,7 +1221,10 @@ class HabitForge {
         }
 
         try {
-            const response = await fetch(`/api/rewards/redeem/${id}/`, { method: 'POST' });
+            const response = await fetch(`/api/rewards/redeem/${id}/`, { 
+                method: 'POST',
+                headers: { 'X-CSRFToken': this.getCSRFToken() }
+            });
             if (response.ok) {
                 card?.classList.add('unlocking');
                 if (window.particles) {
@@ -984,7 +1233,7 @@ class HabitForge {
 
                 // Specifically handle Glitch Theme activation
                 if (rewardName === 'Glitch Theme') {
-                    document.body.classList.remove('brutal', 'cheerful');
+                    document.body.classList.remove('brutal', 'glitch');
                     document.body.classList.add('glitch');
                     localStorage.setItem('hf-theme', 'glitch');
                     this.updateThemeButton();
@@ -1019,6 +1268,9 @@ class HabitForge {
     }
 
     setKineticsMode(mode) {
+        if (mode !== 'campaign') {
+            this.stopMissionExercise({ resetRestless: true, keepStage: true });
+        }
         this.kineticsMode = mode;
         document.getElementById('mode-daily').classList.toggle('active', mode === 'daily');
         document.getElementById('mode-campaign').classList.toggle('active', mode === 'campaign');
@@ -1033,6 +1285,22 @@ class HabitForge {
         if (!this.kinetics3D) {
             this.kinetics3D = new window.Kinetics3D('kinetics-3d-canvas');
         }
+        if (!this.kineticsFallback && typeof window.KineticsFallback2D === 'function') {
+            this.kineticsFallback = new window.KineticsFallback2D('mission-fallback-canvas');
+        }
+        setTimeout(() => {
+            const mission = window.KINETICS_CAMPAIGN[this.currentMissionIndex];
+            const previewExercise = mission?.exercises.find(ex => !this.completedMissionExercises.includes(ex.id)) || mission?.exercises?.[0] || null;
+            if (previewExercise && this.kinetics3D && !this.kinetics3D.renderUnavailable) {
+                this.kinetics3D.setAnimation(previewExercise.anim);
+            }
+            if (previewExercise && this.kineticsFallback) {
+                this.kineticsFallback.setAnimation(previewExercise.anim);
+                this.kineticsFallback.refresh();
+            }
+            this.kinetics3D?.resize();
+            this.updateMissionDemo(previewExercise?.anim || 'generic', previewExercise || null);
+        }, 50);
     }
 
     toggleDietNotes() {
@@ -1046,6 +1314,301 @@ class HabitForge {
         }
     }
 
+    setRestlessVoiceLine(text) {
+        this.restlessVoiceLine = text || (this.speechSynth ? 'Voice guide ready' : 'Voice unavailable');
+        const voiceState = document.getElementById('restless-voice-state');
+        if (voiceState) voiceState.textContent = this.restlessVoiceLine;
+    }
+
+    resetMissionNarrationState() {
+        this.missionNarrationState = {
+            halfwaySpoken: false,
+            tenSecondSpoken: false
+        };
+    }
+
+    getUpcomingRestlessExercise() {
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        if (!mission) return null;
+        if (this.restlessActive && this.restlessQueue.length) {
+            return mission.exercises.find(ex => ex.id === this.restlessQueue[0]) || null;
+        }
+        return this.getMissionPreviewExercise();
+    }
+
+    NARRATIVE_VAULT = {
+        intros: [
+            "Hey. Let's tackle {name} together for {seconds} seconds. {wisdom} {technique}",
+            "I'm ready when you are. {name} today is about {wisdom}. {technique} {seconds} seconds on the clock.",
+            "Let's make this session count with some {name}. Remember: {wisdom} {technique} Let's go for {seconds}."
+        ],
+        halfway: [
+            "Halfway through these {name}. You're consistent, and that's what counts. Keep that rhythm.",
+            "That's half the time already. You're looking strong on the {name}. Stay with me.",
+            "Midpoint reached. The {name} are working. Breathe through the effort."
+        ],
+        final: [
+            "Final ten seconds of {name}. You've got this. Finish clean, stay focused.",
+            "Ten left. This is where the growth happens. Own these last reps of {name}.",
+            "Final push. Ten seconds. I'm right here with you."
+        ],
+        recovery: [
+            "Beautiful work. Take a deep breath. You have {rest} seconds to recharge. Use them well. Up next, we have {next}.",
+            "Rest and reset. {rest} seconds of recovery for you. Think about your focus. Next up: {next}.",
+            "Great set. Shake it out. You've earned this {rest} second break. Next, we prepare for {next}."
+        ]
+    };
+
+    getRandomPhrase(key, variables = {}) {
+        const pool = this.NARRATIVE_VAULT[key];
+        let phrase = pool[Math.floor(Math.random() * pool.length)];
+        for (const [v, val] of Object.entries(variables)) {
+            phrase = phrase.replace(new RegExp(`\\{${v}\\}`, 'g'), val);
+        }
+        return phrase;
+    }
+
+    getExerciseWisdom(anim) {
+        const wisdom = {
+            'pushup': {
+                why: 'Push-ups build more than just strength; they build the resolve to push through resistance in your life.',
+                how: 'Keep your elbows tucked at a 45-degree angle to protect your shoulders.'
+            },
+            'squat': {
+                why: 'Squats ground your energy. They remind us that true power starts with a stable foundation.',
+                how: 'Drive through your heels and keep your chest proud.'
+            },
+            'plank': {
+                why: 'The plank is about stillness under pressure. It teaches your mind to stay calm while the body works.',
+                how: 'Keep your core braced and don\'t let your hips sag.'
+            },
+            'crunch': {
+                why: 'Core work is about finding your center. A strong center helps you navigate the chaos of the day.',
+                how: 'Focus on pulling your ribs toward your hips, not your neck.'
+            },
+            'jump': {
+                why: 'Explosivity reminds us that we have the power to rise above any obstacle when we commit.',
+                how: 'Land softly on the balls of your feet to protect your joints.'
+            },
+            'dead_bug': {
+                why: 'Coordination under tension. It teaches the core and limbs to work in perfect, quiet harmony.',
+                how: 'Keep your lower back glued to the floor at all times.'
+            },
+            'clamshell': {
+                why: 'Stability starts in the hips. This is about building the foundation of every step you take.',
+                how: 'Only open as far as you can without rolling your hips back.'
+            },
+            'bird_dog': {
+                why: 'Balance is a lifelong practice. This movement aligns the spine and centers the mind.',
+                how: 'Keep your neck neutral, looking at the floor between your hands.'
+            },
+            'heel_tap': {
+                why: 'Deep core awareness helps us breathe behind the brace.',
+                how: 'Reach firmly for your heels while keeping your belly button pulled in.'
+            },
+            'punch': {
+                why: 'Release the stress. Every punch is a focus point for your intent.',
+                how: 'Snap the punches back quickly, as if touching a hot surface.'
+            },
+            'generic': {
+                why: 'This movement is a gift to your future self. Pure, intentional progress.',
+                how: 'Focus on a controlled tempo and steady breathing.'
+            }
+        };
+        return wisdom[anim] || wisdom['generic'];
+    }
+
+    buildRestlessIntro(exercise, seconds) {
+        if (!exercise) return "I'm ready when you are. Let's start with a breath.";
+        const wisdom = this.getExerciseWisdom(exercise.anim);
+        return this.getRandomPhrase('intros', {
+            name: exercise.name,
+            seconds: seconds,
+            wisdom: wisdom.why,
+            technique: wisdom.how
+        });
+    }
+
+    buildRestlessMidSetPrompt(exercise) {
+        if (!exercise) return "You're doing great. Stay with it.";
+        return this.getRandomPhrase('halfway', { name: exercise.name });
+    }
+
+    buildRestlessFinalPrompt(exercise) {
+        if (!exercise) return "Final ten seconds. I'm right here with you. Finish strong.";
+        return this.getRandomPhrase('final', { name: exercise.name });
+    }
+
+    buildRestlessRecoveryPrompt(restSeconds, nextExercise) {
+        const nextName = nextExercise?.name || 'your next movement';
+        return this.getRandomPhrase('recovery', {
+            rest: restSeconds,
+            next: nextName
+        });
+    }
+
+    showRecoveryHUD(restSeconds, nextExercise) {
+        const overlay = document.getElementById('recovery-hud-overlay');
+        const timer = document.getElementById('recovery-timer-display');
+        const nextTitle = document.getElementById('recovery-next-title');
+        const mediaWrap = document.getElementById('mission-media-wrap');
+
+        if (overlay && timer && nextTitle) {
+            nextTitle.textContent = nextExercise?.name || 'Next Movement';
+            timer.textContent = restSeconds;
+            overlay.classList.remove('hidden');
+            if (mediaWrap) mediaWrap.classList.add('in-recovery');
+        }
+        
+        // Ensure the preview GIF is updated for the next exercise
+        if (nextExercise) {
+            this.updateMissionDemo(nextExercise.anim, nextExercise);
+        }
+    }
+
+    hideRecoveryHUD() {
+        const overlay = document.getElementById('recovery-hud-overlay');
+        const mediaWrap = document.getElementById('mission-media-wrap');
+        if (overlay) overlay.classList.add('hidden');
+        if (mediaWrap) mediaWrap.classList.remove('in-recovery');
+    }
+
+    toggleRestlessMode(forceValue) {
+        const nextValue = typeof forceValue === 'boolean' ? forceValue : !this.restlessModeEnabled;
+        this.restlessModeEnabled = nextValue;
+        localStorage.setItem('hf-kinetics-restless-mode', String(nextValue));
+        if (!nextValue && this.restlessActive) {
+            this.stopMissionExercise({ resetRestless: true });
+            this.showToast('Restless mode stopped. Back to manual control.', 'info');
+        }
+        if (!nextValue) {
+            this.setRestlessVoiceLine(this.speechSynth ? 'Voice guide ready' : 'Voice unavailable');
+        } else {
+            this.setRestlessVoiceLine(this.speechSynth ? 'Voice guide armed' : 'Voice unavailable');
+        }
+        this.updateRestlessUI();
+    }
+
+    toggleRestlessRun(startExerciseId = null) {
+        if (this.restlessActive) {
+            this.stopMissionExercise({ resetRestless: true });
+            this.showToast('Restless run stopped.', 'info');
+            return;
+        }
+
+        if (!this.restlessModeEnabled) {
+            this.toggleRestlessMode(true);
+        }
+
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        if (!mission) return;
+
+        const startExercise = startExerciseId
+            ? mission.exercises.find(ex => ex.id === startExerciseId)
+            : (mission.exercises.find(ex => !this.completedMissionExercises.includes(ex.id)) || mission.exercises[0]);
+
+        if (!startExercise) {
+            this.showToast('This mission is already complete.', 'info');
+            this.updateRestlessUI();
+            return;
+        }
+
+        this.restlessQueue = this.buildRestlessQueue(startExercise.id);
+        this.restlessActive = this.restlessQueue.length > 0;
+        this.updateRestlessUI();
+        if (this.restlessActive) {
+            this.startMissionExercise(
+                startExercise.id,
+                startExercise.anim,
+                startExercise.name,
+                startExercise.xp,
+                startExercise.essence,
+                startExercise.ui.color,
+                this.getMissionExerciseDuration(startExercise)
+            );
+        }
+    }
+
+    updateRestlessUI() {
+        const toggleBtn = document.getElementById('restless-toggle-btn');
+        const startBtn = document.getElementById('restless-start-btn');
+        const statusPill = document.getElementById('restless-status-pill');
+        const nextUp = document.getElementById('restless-next-up');
+        const nextExercise = this.getUpcomingRestlessExercise();
+
+        if (toggleBtn) {
+            toggleBtn.textContent = this.restlessModeEnabled ? '🦾 Mode: Auto' : '🦾 Mode: Manual';
+            toggleBtn.classList.toggle('active', this.restlessModeEnabled);
+        }
+
+        if (startBtn) {
+            startBtn.textContent = this.restlessActive ? 'Stop circuit' : 'Initiate sequence';
+            startBtn.classList.toggle('primary', !this.restlessActive);
+        }
+
+        if (statusPill) {
+            statusPill.textContent = this.restlessActive ? 'In Circuit' : (this.restlessModeEnabled ? 'Armed' : 'Staged');
+        }
+
+        if (nextUp) {
+            nextUp.textContent = nextExercise ? `Next: ${nextExercise.name}` : 'Mission Complete';
+        }
+
+        this.setRestlessVoiceLine(this.restlessVoiceLine);
+    }
+
+    buildRestlessQueue(startExerciseId) {
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        if (!mission) return [];
+        const startIndex = Math.max(0, mission.exercises.findIndex(ex => ex.id === startExerciseId));
+        return mission.exercises
+            .slice(startIndex)
+            .filter(ex => !this.completedMissionExercises.includes(ex.id))
+            .map(ex => ex.id);
+    }
+
+    getMissionExerciseDuration(exercise) {
+        if (!exercise) return 30;
+        return parseInt(exercise.seconds, 10) || 30;
+    }
+
+    getMissionRestDuration(exercise) {
+        if (!exercise) return 15;
+        if (exercise.restSeconds !== undefined) {
+            return parseInt(exercise.restSeconds, 10) || 15;
+        }
+        const match = String(exercise.rest || '').match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : 15;
+    }
+
+    getMissionPreviewExercise() {
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        if (!mission) return null;
+        return mission.exercises.find(ex => !this.completedMissionExercises.includes(ex.id)) || mission.exercises[0] || null;
+    }
+
+    clearMissionTimers() {
+        if (this.missionTimer) clearInterval(this.missionTimer);
+        if (this.missionPrepTimer) clearInterval(this.missionPrepTimer);
+        this.missionTimer = null;
+        this.missionPrepTimer = null;
+    }
+
+    validateStateConsistency() {
+        console.log("Portal Audit: Verifying state integrity...");
+        if (!Array.isArray(this.completedMissionExercises)) {
+            console.warn("Audit: Corrupted exercise state detected. Resetting.");
+            this.completedMissionExercises = [];
+            localStorage.setItem('hf-kinetics-done', '[]');
+        }
+        if (this.currentMissionIndex < 0 || this.currentMissionIndex >= window.KINETICS_CAMPAIGN.length) {
+            console.warn("Audit: Resetting out-of-bounds mission index.");
+            this.currentMissionIndex = 0;
+            localStorage.setItem('hf-kinetics-level', 0);
+        }
+        console.log("Portal Audit: Integrity verified.");
+    }
+
     switchTab(tabId) {
         document.querySelectorAll('.main-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabId);
@@ -1054,17 +1617,29 @@ class HabitForge {
             view.classList.add('hidden');
         });
         
-        const targetView = tabId === 'rituals' ? 'rituals-view' : (tabId === 'kinetics' ? 'kinetics-view' : 'library-view');
+        const libraryModal = document.getElementById('library-modal-overlay');
+        const targetView = tabId === 'rituals' ? 'rituals-view' : 'kinetics-view';
         if (tabId === 'library') {
             document.getElementById('rituals-view').classList.remove('hidden');
-            document.getElementById('ritual-library-modal-overlay')?.classList.remove('hidden');
+            this.showRitualLibrary();
         } else {
+            const app = document.getElementById('app');
+            if (app) {
+                app.classList.toggle('mode-immersive', tabId === 'kinetics');
+            }
+
+            libraryModal?.classList.add('hidden');
             document.getElementById(targetView)?.classList.remove('hidden');
         }
 
-        // Force 3D Resize when switching to kinetics
-        if (tabId === 'kinetics' && this.kinetics3D) {
-            setTimeout(() => this.kinetics3D.resize(), 50);
+        // Professional Resource Management: Pause 3D canvas when invisible
+        if (this.kinetics3D) {
+            if (tabId === 'kinetics') {
+                setTimeout(() => this.kinetics3D.resize(), 50);
+                this.kinetics3D.shouldPause = false; // Add this flag to 3D engine if possible
+            } else {
+                this.kinetics3D.shouldPause = true;
+            }
         }
     }
 
@@ -1077,14 +1652,25 @@ class HabitForge {
             grid.classList.remove('hidden');
             campaign.classList.add('hidden');
             grid.innerHTML = (this.exercisePresets || []).map(ex => `
-                <div class="reward-card exercise-card">
-                    <span class="exercise-icon">${ex.icon}</span>
-                    <span class="badge secondary small">${ex.energy} energy</span>
+                <div class="exercise-card glass energy-${ex.energy}">
+                    <div class="exercise-card-top">
+                        <span class="exercise-icon">${ex.icon}</span>
+                        <span class="badge secondary small">${ex.energy} energy</span>
+                    </div>
                     <h3>${ex.name}</h3>
                     <p class="exercise-desc">${ex.desc}</p>
-                    <div class="card-actions">
-                        <span class="cost">${ex.reward} ✨</span>
-                        <button class="primary-btn small" onclick="window.app.completeExercise('${ex.name}', ${ex.reward})">Done</button>
+                    <div class="exercise-metrics">
+                        <div class="exercise-metric">
+                            <span class="exercise-metric-label">Reward</span>
+                            <span class="exercise-metric-value">${ex.reward} ✨</span>
+                        </div>
+                        <div class="exercise-metric">
+                            <span class="exercise-metric-label">Mode</span>
+                            <span class="exercise-metric-value">Daily Sync</span>
+                        </div>
+                    </div>
+                    <div class="card-actions exercise-actions">
+                        <button class="primary-btn small exercise-complete-btn" onclick="window.app.completeExercise('${ex.name}', ${ex.reward})">Mark Complete</button>
                     </div>
                 </div>
             `).join('');
@@ -1095,13 +1681,52 @@ class HabitForge {
         }
     }
 
+    async completeExercise(name, reward) {
+        try {
+            const response = await fetch('/api/exercises/complete/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify({ name, reward })
+            });
+
+            if (!response.ok) {
+                throw new Error('Exercise completion failed');
+            }
+
+            await this.loadData();
+            this.render();
+            this.showToast(`Kinetics synced: ${name} complete. +${reward} ✨`, 'success');
+
+            if (window.particles) {
+                window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, 'rgb(96, 165, 250)');
+            }
+        } catch (error) {
+            console.error('Failed to complete exercise:', error);
+            this.showToast('Could not save that exercise yet.', 'error');
+        }
+    }
+
     renderCampaign() {
-        const mission = window.KINETICS_CAMPAIGN[this.currentMissionIndex];
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
         if (!mission) return;
 
-        document.getElementById('current-mission-title').textContent = mission.title;
+        const titleEl = document.getElementById('current-mission-title');
+        titleEl.textContent = mission.title;
+        titleEl.classList.add('dopamine-pop');
+        setTimeout(() => titleEl.classList.remove('dopamine-pop'), 400);
+
         document.getElementById('current-mission-objective').textContent = mission.objective;
         document.getElementById('mission-tip').textContent = mission.microHabit;
+        this.updateRestlessUI();
+        this.updateMissionStage({
+            status: 'Mission Ready',
+            title: mission.title,
+            instruction: mission.objective,
+            cue: `Cue: ${mission.microHabit}`
+        });
 
         const list = document.getElementById('mission-exercises-list');
         const progress = (this.completedMissionExercises.length / mission.exercises.length) * 100;
@@ -1112,125 +1737,543 @@ class HabitForge {
             return `
                 <div class="mission-exercise-card glass ${isDone ? 'done' : ''}" style="border-left: 5px solid ${ex.ui.color}">
                     <div class="ex-info">
+                        <div class="exercise-card-top">
+                            <span class="badge secondary small">Mission Exercise</span>
+                            <span class="badge secondary small">${ex.rest} rest</span>
+                        </div>
                         <h4>${ex.name}</h4>
-                        <div class="ex-meta small muted">
-                            <span>${ex.sets}</span> | <span>Rest: ${ex.rest}</span>
+                        <div class="ex-meta">
+                            <span class="ex-meta-pill">${ex.sets}</span>
+                            <span class="ex-meta-pill">Rest ${ex.rest}</span>
                         </div>
                         <p class="ex-instruction small">${ex.instruction}</p>
                         <div class="ex-cue small"><b>Cue:</b> ${ex.cue}</div>
+                        <div class="alt-options tiny">
+                            <span>Alt: ${ex.easier}</span>
+                        </div>
                     </div>
                     <div class="ex-actions">
                         <div class="xp-reward">+${ex.xp} XP</div>
+                        <div class="essence-reward">+${ex.essence} ✨</div>
                         ${isDone ? 
-                            '<span class="badge secondary">SUCCESS</span>' : 
                             `<div class="btn-group-v">
-                                <button class="action-trigger-btn" onclick="window.app.startMissionExercise('${ex.id}', '${ex.anim}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}', 30)">START</button>
-                                <button class="minimal-btn tiny" onclick="window.app.completeMissionExercise('${ex.id}', '${ex.name}', ${ex.xp / 2}, ${ex.essence / 2}, '${ex.ui.color}', true)">Minimal Version</button>
+                                <button class="action-trigger-btn secondary" onclick="window.app.startMissionExercise('${ex.id}', '${ex.anim}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}', ${this.getMissionExerciseDuration(ex)})">RE-SYNC</button>
+                                <span class="badge secondary kinetics-success-badge">COMPLETED</span>
+                            </div>` : 
+                            `<div class="btn-group-v">
+                                <button class="action-trigger-btn" onclick="window.app.startMissionExercise('${ex.id}', '${ex.anim}', '${ex.name}', ${ex.xp}, ${ex.essence}, '${ex.ui.color}', ${this.getMissionExerciseDuration(ex)})">START</button>
+                                <button class="minimal-pill-btn" onclick="window.app.completeMissionExercise('${ex.id}', '${ex.name}', ${ex.xp / 2}, ${ex.essence / 2}, '${ex.ui.color}', true)">Minimal Sync</button>
                             </div>`
                         }
-                    </div>
-                    <div class="alt-options tiny">
-                        <span>Alt: ${ex.easier}</span>
                     </div>
                 </div>
             `;
         }).join('');
 
-        if (this.completedMissionExercises.length === mission.exercises.length) {
-            list.innerHTML += `
-                <div class="next-level-area glass" style="text-align:center; padding: 20px; margin-top:20px;">
-                    <h3>MISSION ACCOMPLISHED 🏆</h3>
-                    <p class="small muted">You've mastered this level. Ready to proceed?</p>
-                    <button class="primary-btn" onclick="window.app.advanceMission()">Next Level</button>
-                </div>
-            `;
+        if (this.completedMissionExercises.length >= mission.exercises.length) {
+            // Check if they are viewing the latest mission or a past one
+            if (this.viewingMissionIndex === this.currentMissionIndex) {
+                list.innerHTML += `
+                    <div class="next-level-area glass">
+                        <h3>MISSION ACCOMPLISHED 🏆</h3>
+                        <p class="small muted">You've mastered this level. Ready to proceed?</p>
+                        <button class="primary-btn" onclick="window.app.advanceMission()">Next Level</button>
+                    </div>
+                `;
+            } else {
+                list.innerHTML += `
+                    <div class="next-level-area glass">
+                        <h3>MISSION ACCOMPLISHED 🏆</h3>
+                        <p class="small muted">You have already completed this past day's training.</p>
+                        <button class="primary-btn" onclick="window.app.nextMission()">View Next Day</button>
+                    </div>
+                `;
+            }
+        }
+
+        const previewExercise = this.getMissionPreviewExercise();
+        this.updateMissionDemo(previewExercise?.anim || 'generic', previewExercise || null);
+        if (this.kinetics3D && previewExercise) {
+            this.kinetics3D.intensityBoost = false;
+            this.kinetics3D.setAnimation(previewExercise.anim);
+        }
+    }
+
+    getCurrentMissionExercise(id) {
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        if (!mission) return null;
+        return mission.exercises.find(ex => ex.id === id) || null;
+    }
+
+    updateMissionStage({ status, title, instruction, cue }) {
+        const statusEl = document.getElementById('mission-stage-status');
+        const titleEl = document.getElementById('mission-stage-title');
+        const instructionEl = document.getElementById('mission-stage-instruction');
+        const cueEl = document.getElementById('mission-stage-cue');
+
+        if (statusEl) statusEl.textContent = status || 'Mission Ready';
+        if (titleEl) titleEl.textContent = title || 'Choose an exercise';
+        if (instructionEl) instructionEl.textContent = instruction || 'Press START on a mission exercise to see live form guidance here.';
+        if (cueEl) cueEl.textContent = cue || 'Cue: Stay controlled and intentional.';
+    }
+
+    updateMissionDemo(anim, exercise) {
+        const media = document.getElementById('mission-demo-media');
+        const mainCanvas = document.getElementById('kinetics-3d-canvas');
+        const exerciseTitle = document.getElementById('hud-exercise-title');
+
+        if (exerciseTitle && exercise) {
+            exerciseTitle.textContent = exercise.name;
+        }
+
+        if (!media) return;
+
+        // Prioritize GIF for reliable visual presence
+        const demoData = this.exerciseDemoLibrary[anim] || this.exerciseDemoLibrary['generic'];
+        media.src = demoData.src;
+
+        // 3D handling is now secondary/toggleable
+        if (this.kinetics3D && !mainCanvas.classList.contains('hidden')) {
+            this.kinetics3D.setAnimation(anim);
+        }
+    }
+
+    toggleKinetics3D() {
+        const mainCanvas = document.getElementById('kinetics-3d-canvas');
+        const viewer = document.getElementById('mission-demo-viewer');
+        if (!mainCanvas || !viewer) return;
+
+        const is3DHidden = mainCanvas.classList.contains('hidden');
+        if (is3DHidden) {
+            mainCanvas.classList.remove('hidden');
+            viewer.classList.add('hidden');
+            if (this.kinetics3D) {
+                this.kinetics3D.renderUnavailable = false;
+                const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+                const ex = mission?.exercises[0]; // Simple reload for current
+                if (ex) this.kinetics3D.setAnimation(ex.anim);
+            }
+        } else {
+            mainCanvas.classList.add('hidden');
+            viewer.classList.remove('hidden');
+            if (this.kinetics3D) this.kinetics3D.renderUnavailable = true;
         }
     }
 
     async completeMissionExercise(id, name, xp, essence, color, isMinimal = false) {
-        if (this.completedMissionExercises.includes(id)) return;
+        // Redoing is allowed, but we only log it if it wasn't already done in this specific session
+        // or we can just allow multiple completions if the user wants to re-do.
+        // For ADHD support, multiple "wins" are better than blocking.
         
         try {
             const resp = await fetch('/api/exercises/complete/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
                 body: JSON.stringify({ name: (isMinimal ? "Minimal: " : "Mission: ") + name, reward: essence })
             });
 
             if (resp.ok) {
-                this.completedMissionExercises.push(id);
+                const exercise = this.getCurrentMissionExercise(id);
+                if (!this.completedMissionExercises.includes(id)) {
+                    this.completedMissionExercises.push(id);
+                }
                 localStorage.setItem('hf-kinetics-done', JSON.stringify(this.completedMissionExercises));
                 
+                this.exerciseHistory = JSON.parse(localStorage.getItem('hf-kinetics-history') || '{}');
+                const today = new Date().toISOString().split('T')[0];
+                if (!this.exerciseHistory[today]) this.exerciseHistory[today] = [];
+                this.exerciseHistory[today].push({ id, name, time: new Date().toLocaleTimeString(), isMinimal });
+                localStorage.setItem('hf-kinetics-history', JSON.stringify(this.exerciseHistory));
+
                 const msg = isMinimal ? `✨ ${xp} XP (Minimal Sync). Build that habit!` : `✨ ${xp} XP GAINED. ${name} SYNCED.`;
                 this.showToast(msg, isMinimal ? 'info' : 'success');
                 
+                // Journey Looping Check
+                this.checkJourneyProgress();
+
+                const timerDisplay = document.getElementById('mission-timer-display');
+                if (timerDisplay) {
+                    timerDisplay.classList.add('dopamine-pop');
+                    setTimeout(() => timerDisplay.classList.remove('dopamine-pop'), 400);
+                }
+
                 if (window.particles) {
                     window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, color);
                 }
                 
                 this.data.focusPoints += Math.floor(xp / 10);
+                this.updateMissionStage({
+                    status: isMinimal ? 'Minimal Complete' : 'Exercise Complete',
+                    title: name,
+                    instruction: isMinimal ? 'Minimal version logged. A smaller win still builds momentum.' : 'Excellent work. That set has been synced and counted toward your mission.',
+                    cue: isMinimal ? 'Cue: Small reps done consistently still compound.' : 'Cue: Reset your breath and prepare for the next movement.'
+                });
+                
+                if (this.restlessActive && !isMinimal) {
+                    this.setRestlessVoiceLine(`Coach confirms ${name} complete`);
+                    this.speak(`${name} complete.`, { rate: 1.04 });
+                }
                 this.render();
-                this.stopMissionExercise();
+                this.renderHistory();
+                this.updateRestlessUI();
+
+                if (this.restlessActive && !isMinimal) {
+                    this.beginRestlessInterval(exercise);
+                } else {
+                    this.stopMissionExercise({ resetRestless: isMinimal && this.restlessActive });
+                }
             }
         } catch (e) { console.error(e); }
     }
 
-    async startMissionExercise(id, anim, name, xp, essence, color, seconds) {
-        if (!this.kinetics3D) { this.initKinetics3D(); }
+    checkJourneyProgress() {
+        const allExerciseIds = window.KINETICS_CAMPAIGN.flatMap(m => m.exercises.map(ex => ex.id));
+        const allDone = allExerciseIds.every(id => this.completedMissionExercises.includes(id));
         
-        const timerWrap = document.getElementById('mission-timer-overlay');
-        if (timerWrap) timerWrap.classList.remove('hidden');
+        if (allDone) {
+            this.showToast('JOURNEY COMPLETE! Re-initiating from Day 1...', 'success');
+            setTimeout(() => {
+                this.completedMissionExercises = [];
+                localStorage.setItem('hf-kinetics-done', JSON.stringify([]));
+                this.currentMissionIndex = 0;
+                localStorage.setItem('hf-kinetics-level', 0);
+                this.viewingMissionIndex = 0;
+                this.render();
+                this.speak("Journey complete. You have evolved. Re-initiating mission track from day one.", { rate: 0.95 });
+            }, 3000);
+        }
+    }
 
-        // PREP COUNTDOWN (3s)
-        let prep = 3;
-        this.updateTimerDisplay(prep, 3);
-        this.speak("Prepare");
-        
-        const prepInt = setInterval(() => {
-            prep--;
-            if (prep > 0) {
-                this.updateTimerDisplay(prep, 3);
-                this.speak(prep.toString());
-            } else {
-                clearInterval(prepInt);
+    async startMissionExercise(id, anim, name, xp, essence, color, seconds) {
+        console.log("Starting mission exercise:", id, anim);
+        try {
+            const exercise = this.getCurrentMissionExercise(id);
+            if (!exercise) return;
+
+            this.clearMissionTimers();
+            if (!this.kinetics3D) { 
+                this.initKinetics3D(); 
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            if (this.restlessModeEnabled && !this.completedMissionExercises.includes(id)) {
+                this.restlessQueue = this.buildRestlessQueue(id);
+                this.restlessActive = this.restlessQueue.length > 0;
+            }
+
+            this.currentExerciseParams = { id, anim, name, xp, essence, color, seconds };
+            this.resetMissionNarrationState();
+            this.missionPaused = false;
+            this.updatePauseButtonUI();
+            this.setRestlessVoiceLine(`Coach prepping ${exercise.name}`);
+            this.updateRestlessUI();
+
+            const timerWrap = document.getElementById('mission-timer-overlay');
+            if (timerWrap) timerWrap.classList.remove('hidden');
+            this.hideRecoveryHUD();
+
+            if (this.kinetics3D) this.kinetics3D.intensityBoost = false;
+            this.updateMissionStage({
+                status: 'Get Set',
+                title: exercise.name,
+                instruction: exercise.instruction,
+                cue: `Cue: ${exercise.cue}`
+            });
+            this.updateMissionDemo(anim, exercise);
+
+            let prep = 3;
+            this.updateMissionTimerDisplay(prep, 3);
+            
+            // Humanized Intro with a small breathe delay
+            setTimeout(() => {
+                this.speak(this.buildRestlessIntro(exercise, seconds));
+            }, 400);
+
+            this.missionPrepTimer = setInterval(() => {
+                if (this.missionPaused) return;
+                prep--;
+                if (prep > 0) {
+                    this.updateMissionTimerDisplay(prep, 3);
+                    this.setRestlessVoiceLine(`Coach counting in ${exercise.name}`);
+                    this.updateMissionStage({
+                        status: `Prepare ${prep}`,
+                        title: exercise.name,
+                        instruction: exercise.instruction,
+                        cue: `Cue: ${exercise.cue}`
+                    });
+                    this.speak(prep.toString());
+                    return;
+                }
+
+                clearInterval(this.missionPrepTimer);
+                this.missionPrepTimer = null;
                 this.speak("Go!");
                 this.runMissionTimer(id, anim, name, xp, essence, color, seconds);
-            }
-        }, 1000);
+            }, 1000);
+        } catch (e) { console.error("Start mission error:", e); }
     }
 
     runMissionTimer(id, anim, name, xp, essence, color, seconds) {
-        if (this.kinetics3D) { this.kinetics3D.setAnimation(anim); }
+        if (this.kinetics3D && !this.kinetics3D.renderUnavailable) { this.kinetics3D.setAnimation(anim); }
+        if (this.kineticsFallback) this.kineticsFallback.setAnimation(anim);
+        const exercise = this.getCurrentMissionExercise(id);
+
+        this.currentExerciseParams = { id, anim, name, xp, essence, color, seconds };
+        this.missionPaused = false;
+        this.updatePauseButtonUI();
+        this.setRestlessVoiceLine(`Coach live on ${name}`);
 
         this.missionTimeRemaining = parseInt(seconds) || 30;
         this.missionTotalTime = this.missionTimeRemaining;
-        this.updateTimerDisplay();
+        this.updateMissionTimerDisplay();
+        if (exercise) {
+            const wisdom = this.getExerciseWisdom(exercise.anim);
+            this.updateMissionStage({
+                status: 'Live Set',
+                title: exercise.name,
+                instruction: wisdom.how,
+                cue: wisdom.why
+            });
+            this.updateMissionDemo(anim, exercise);
+        }
 
         if (this.missionTimer) clearInterval(this.missionTimer);
         this.missionTimer = setInterval(() => {
-            this.missionTimeRemaining--;
-            this.updateTimerDisplay();
+            if (this.missionPaused) return;
             
+            this.missionTimeRemaining--;
+            this.updateMissionTimerDisplay();
+            
+            // Power Surge: Last 5 seconds muscle glow boost
+            if (this.missionTimeRemaining <= 5 && this.kinetics3D) {
+                this.kinetics3D.intensityBoost = true;
+            }
+
             // Audio Cue for last 3s
             if (this.missionTimeRemaining <= 3 && this.missionTimeRemaining > 0) {
                 this.speak(this.missionTimeRemaining.toString());
             }
 
+            const halfwayMark = Math.max(2, Math.floor(this.missionTotalTime / 2));
+            if (this.restlessActive && !this.missionNarrationState.halfwaySpoken && this.missionTimeRemaining === halfwayMark) {
+                this.missionNarrationState.halfwaySpoken = true;
+                this.setRestlessVoiceLine(`Coach cue: halfway through ${name}`);
+                this.speak(this.buildRestlessMidSetPrompt(exercise), { rate: 1.01 });
+            }
+
+            if (this.restlessActive && !this.missionNarrationState.tenSecondSpoken && this.missionTimeRemaining === 10) {
+                this.missionNarrationState.tenSecondSpoken = true;
+                this.setRestlessVoiceLine(`Coach push: final ten on ${name}`);
+                this.speak(this.buildRestlessFinalPrompt(exercise));
+            }
+
             if (this.missionTimeRemaining <= 0) {
                 clearInterval(this.missionTimer);
+                this.missionTimer = null;
                 this.completeMissionExercise(id, name, xp, essence, color);
             }
         }, 1000);
     }
 
-    stopMissionExercise() {
-        if (this.missionTimer) clearInterval(this.missionTimer);
-        document.getElementById('mission-timer-overlay')?.classList.add('hidden');
-        if (this.kinetics3D) this.kinetics3D.setAnimation(null);
+    beginRestlessInterval(exercise) {
+        if (!exercise) {
+            this.stopMissionExercise({ resetRestless: true });
+            return;
+        }
+
+        this.restlessQueue = this.restlessQueue.filter(queueId => queueId !== exercise.id);
+        const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+        const nextExercise = mission?.exercises.find(ex => ex.id === this.restlessQueue[0]) || null;
+        if (!nextExercise) {
+            this.stopMissionExercise({ resetRestless: true });
+            this.showToast('Restless run complete. Mission synced.', 'success');
+            return;
+        }
+
+        this.clearMissionTimers();
+        this.missionPaused = false;
+        this.currentExerciseParams = {
+            id: nextExercise.id,
+            anim: nextExercise.anim,
+            name: nextExercise.name,
+            xp: nextExercise.xp,
+            essence: nextExercise.essence,
+            color: nextExercise.ui.color,
+            seconds: this.getMissionExerciseDuration(nextExercise)
+        };
+        this.updatePauseButtonUI();
+
+        const restSeconds = this.getMissionRestDuration(exercise);
+        this.missionTimeRemaining = restSeconds;
+        this.missionTotalTime = restSeconds;
+        this.updateMissionTimerDisplay(restSeconds, restSeconds);
+        
+        // Show Pro Recovery HUD
+        this.showRecoveryHUD(restSeconds, nextExercise);
+        
+        this.setRestlessVoiceLine(`Coach recovery. ${nextExercise.name} is next.`);
+        this.speak(this.buildRestlessRecoveryPrompt(restSeconds, nextExercise), { rate: 0.98 });
+
+        this.missionTimer = setInterval(() => {
+            if (this.missionPaused) return;
+
+            this.missionTimeRemaining--;
+            this.updateMissionTimerDisplay();
+            
+            // Update Recovery HUD Timer
+            const recoveryTimer = document.getElementById('recovery-timer-display');
+            if (recoveryTimer) recoveryTimer.textContent = this.missionTimeRemaining;
+
+            if (this.missionTimeRemaining <= 3 && this.missionTimeRemaining > 0) {
+                this.speak(this.missionTimeRemaining.toString(), { interrupt: true });
+            }
+
+            if (this.missionTimeRemaining <= 0) {
+                clearInterval(this.missionTimer);
+                this.missionTimer = null;
+                this.hideRecoveryHUD();
+                this.startMissionExercise(
+                    nextExercise.id,
+                    nextExercise.anim,
+                    nextExercise.name,
+                    nextExercise.xp,
+                    nextExercise.essence,
+                    nextExercise.ui.color,
+                    this.getMissionExerciseDuration(nextExercise)
+                );
+            }
+        }, 1000);
     }
 
-    updateTimerDisplay(current = this.missionTimeRemaining, total = this.missionTotalTime) {
-        const display = document.getElementById('timer-display');
+    stopMissionExercise(options = {}) {
+        const { resetRestless = false, keepStage = false } = options;
+        this.clearMissionTimers();
+        this.missionTimeRemaining = 0;
+        this.missionTotalTime = 0;
+        this.missionPaused = false;
+        this.currentExerciseParams = null;
+        document.getElementById('mission-timer-overlay')?.classList.add('hidden');
+        const previewExercise = this.getMissionPreviewExercise();
+        this.updateMissionDemo(previewExercise?.anim || 'generic', previewExercise);
+        if (this.kinetics3D && !this.kinetics3D.renderUnavailable) {
+            this.kinetics3D.intensityBoost = false;
+            this.kinetics3D.setAnimation(previewExercise?.anim || null);
+        }
+        if (this.kineticsFallback) this.kineticsFallback.setAnimation(previewExercise?.anim || 'breathe');
+        if (resetRestless) {
+            this.restlessActive = false;
+            this.restlessQueue = [];
+        }
+        this.resetMissionNarrationState();
+        this.updatePauseButtonUI();
+        this.setRestlessVoiceLine(
+            resetRestless
+                ? (this.speechSynth ? 'Voice guide ready' : 'Voice unavailable')
+                : this.restlessVoiceLine
+        );
+        this.updateRestlessUI();
+        if (!keepStage) {
+            const mission = window.KINETICS_CAMPAIGN[this.viewingMissionIndex];
+            if (mission) {
+                this.updateMissionStage({
+                    status: 'Mission Ready',
+                    title: mission.title,
+                    instruction: mission.objective,
+                    cue: `Cue: ${mission.microHabit}`
+                });
+            }
+        }
+    }
+
+    toggleMissionPause() {
+        if (!this.missionTimer && !this.missionPrepTimer) return;
+        this.missionPaused = !this.missionPaused;
+        this.updatePauseButtonUI();
+        if (this.missionPaused) {
+            this.speak("Just taking a moment to breathe. I'll wait for you.");
+            this.setRestlessVoiceLine("Coach paused... waiting for you");
+        } else {
+            this.speak("Ready when you are. Resuming.");
+            this.setRestlessVoiceLine("Coach live again");
+        }
+    }
+
+    updatePauseButtonUI() {
+        const btn = document.getElementById('mission-pause-btn');
+        if (btn) {
+            btn.querySelector('.icon').textContent = this.missionPaused ? '▶️' : '⏸️';
+            btn.title = this.missionPaused ? 'Resume Mission' : 'Pause Mission';
+        }
+    }
+
+    restartMissionExercise() {
+        if (!this.currentExerciseParams) return;
+        this.speak("No problem at all. Let's reset and start this one fresh.");
+        this.startMissionExercise(this.currentExerciseParams.id, this.currentExerciseParams.anim, this.currentExerciseParams.name, this.currentExerciseParams.xp, this.currentExerciseParams.essence, this.currentExerciseParams.color, this.currentExerciseParams.seconds);
+    }
+
+    onTreeClick() {
+        if (window.particles) {
+            window.particles.burst(window.innerWidth / 2, window.innerHeight / 2, '#4ade80');
+        }
+        this.showToast(`The Evolution Tree is at Stage ${this.data.treeStage + 1}. Keep growing!`, 'success');
+        
+        // Mini "growth" animation
+        const visual = document.querySelector('.tree-visual');
+        if (visual) {
+            visual.style.transform = 'scale(1.4)';
+            setTimeout(() => visual.style.transform = 'scale(1)', 300);
+        }
+    }
+
+    prevHistoryDate() {
+        const d = new Date(this.historyViewDate);
+        d.setDate(d.getDate() - 1);
+        this.historyViewDate = d.toISOString().split('T')[0];
+        this.renderHistory();
+    }
+
+    nextHistoryDate() {
+        const d = new Date(this.historyViewDate);
+        d.setDate(d.getDate() + 1);
+        this.historyViewDate = d.toISOString().split('T')[0];
+        this.renderHistory();
+    }
+
+    renderHistory() {
+        const historyContainer = document.getElementById('mission-history-list');
+        const dateDisplay = document.getElementById('history-current-date');
+        if (!historyContainer || !dateDisplay) return;
+
+        const today = new Date().toISOString().split('T')[0];
+        dateDisplay.textContent = this.historyViewDate === today ? 'Today' : this.historyViewDate;
+
+        const exercises = this.exerciseHistory[this.historyViewDate] || [];
+        if (exercises.length === 0) {
+            historyContainer.innerHTML = '<p class="muted small text-center">No activity recorded for this date.</p>';
+            return;
+        }
+
+        historyContainer.innerHTML = `
+            <div class="history-day glass">
+                <div class="history-items">
+                    ${exercises.map(ex => `
+                        <div class="history-item">
+                            <span class="history-icon">${ex.isMinimal ? '⚡' : '🔥'}</span>
+                            <span class="history-name">${ex.name}</span>
+                            <span class="history-time muted small">${ex.time}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    updateMissionTimerDisplay(current = this.missionTimeRemaining, total = this.missionTotalTime) {
+        const display = document.getElementById('mission-timer-display');
         const fill = document.getElementById('timer-ring-fill');
         if (!display || !fill) return;
 
@@ -1244,12 +2287,35 @@ class HabitForge {
     }
 
     advanceMission() {
-        this.currentMissionIndex = (this.currentMissionIndex + 1) % window.KINETICS_CAMPAIGN.length;
-        this.completedMissionExercises = [];
-        localStorage.setItem('hf-kinetics-level', this.currentMissionIndex);
-        localStorage.setItem('hf-kinetics-done', '[]');
-        this.showToast('🚀 LEVEL UP! NEW MISSION ASSIGNED.', 'info');
-        this.render();
+        if (this.currentMissionIndex < window.KINETICS_CAMPAIGN.length - 1) {
+            this.stopMissionExercise({ resetRestless: true, keepStage: true });
+            this.currentMissionIndex++;
+            this.viewingMissionIndex = this.currentMissionIndex;
+            localStorage.setItem('hf-kinetics-level', this.currentMissionIndex);
+            this.completedMissionExercises = [];
+            localStorage.setItem('hf-kinetics-done', JSON.stringify([]));
+            this.render();
+            window.scrollTo(0, 0);
+            this.showToast('Level Up! New mission available.', 'success');
+        } else {
+            this.showToast('You have conquered all current missions. Respect.', 'success');
+        }
+    }
+
+    prevMission() {
+        if (this.viewingMissionIndex > 0) {
+            this.stopMissionExercise({ resetRestless: true, keepStage: true });
+            this.viewingMissionIndex--;
+            this.renderCampaign();
+        }
+    }
+
+    nextMission() {
+        if (this.viewingMissionIndex < this.currentMissionIndex) {
+            this.stopMissionExercise({ resetRestless: true, keepStage: true });
+            this.viewingMissionIndex++;
+            this.renderCampaign();
+        }
     }
 
     setupHoldToInitiate() {

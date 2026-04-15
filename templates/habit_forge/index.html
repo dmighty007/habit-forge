@@ -24,7 +24,7 @@
             <div class="logo">Habit Forge <span class="badge">PRO</span></div>
             <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Brutal Mode">☀️ Cheerful</button>
             <button id="burnout-shield-btn" class="shield-btn" title="Activate Burnout Shield (24h Reset)">🛡️ Shield: OFF</button>
-            
+
             <div class="state-selector-wrapper">
                 <span class="label">Current State:</span>
                 <div class="state-pills" id="energy-selector">
@@ -46,7 +46,7 @@
             </div>
 
             <div class="user-pill">
-                <a href="/profile/" class="user-avatar" id="user-avatar" title="Profile">{{ user.username.0|upper }}</a>
+                <button class="user-avatar" id="user-avatar-btn" title="Coach Settings">{{ user.username.0|upper }}</button>
                 <span class="user-name" id="user-display-name">{{ user.username }}</span>
                 <a href="/logout/" class="logout-btn" title="Sign Out">↗</a>
             </div>
@@ -67,7 +67,7 @@
                     </div>
                     <p id="tree-status" class="muted">Seeds planted...</p>
                     <button id="water-tree-btn" class="primary-btn pulse full-width">Water Tree (10 ✨)</button>
-                    <button id="start-healthy-week-btn" class="secondary-btn full-width" style="margin-top: 10px;">🍏 Initiate Healthy Week</button>
+                    <button id="start-healthy-week-btn" class="secondary-btn full-width">🍏 Initiate Healthy Week</button>
                 </section>
 
                 <!-- 🍅 FOCUS TIMER -->
@@ -87,9 +87,9 @@
                         <button id="timer-start" class="primary-btn">▶ Start</button>
                         <button id="timer-reset" class="secondary-btn">↺ Reset</button>
                     </div>
-                    <div class="audio-control-panel" style="margin-top: 15px;">
-                        <label class="muted small" style="display:block; margin-bottom: 5px;">Cognitive Audio Stream</label>
-                        <select id="audio-genre-select" class="full-width" style="margin-bottom: 10px; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px;">
+                    <div class="audio-control-panel">
+                        <label class="muted small">Cognitive Audio Stream</label>
+                        <select id="audio-genre-select" class="full-width" title="Select Cognitive Audio Stream Genre">
                             <option value="piano">🎹 Classical Piano (Radio Swiss)</option>
                             <option value="violin">🎻 Baroque & Violins (1.FM)</option>
                             <option value="classical">🎼 Classic Mix (1.FM)</option>
@@ -99,13 +99,13 @@
                         </select>
                         <button id="toggle-audio-btn" class="secondary-btn full-width">🎵 Play Stream</button>
                     </div>
-                    <p id="timer-sessions" class="muted small" style="text-align:center;margin-top:8px;">Sessions: 0 🍅</p>
+                    <p id="timer-sessions" class="muted small text-center mt-2">Sessions: 0 🍅</p>
                 </section>
 
                 <!-- 🧊 ICEBREAKER -->
-                <section class="glass" style="text-align:center;">
+                <section class="glass text-center">
                     <button id="icebreaker-btn" class="primary-btn full-width">🧊 I'm Stuck — Pick For Me</button>
-                    <p id="icebreaker-result" class="muted small" style="margin-top:10px;min-height:20px;"></p>
+                    <p id="icebreaker-result" class="muted small mt-2 min-h-20"></p>
                 </section>
 
                 <section class="todo-panel glass">
@@ -174,59 +174,198 @@
                         <button id="add-habit-btn" class="primary-btn small">+ New</button>
                     </div>
                 </div>
-                
+
                 <div id="habit-list" class="ritual-grid">
                     <!-- Habits will be injected here -->
                 </div>
+
+                <!-- 🏅 ACHIEVEMENTS -->
+                <section class="achievements-section glass">
+                    <div class="section-header">
+                        <h2>🏅 Achievements</h2>
+                    </div>
+                    <div id="achievements-grid" class="achievements-grid">
+                        <!-- Injected by JS -->
+                    </div>
+                </section>
+
+                <section class="reward-section glass">
+                    <div class="section-header">
+                        <h2>Reward Emporium</h2>
+                        <div class="filter-pills">
+                            <button class="filter-pill active" data-category="all">All</button>
+                            <button class="filter-pill" data-category="digital">Digital</button>
+                            <button class="filter-pill" data-category="personal">Personal</button>
+                        </div>
+                    </div>
+                    <div id="reward-list" class="reward-grid">
+                        <!-- Rewards will be injected here -->
+                    </div>
+                </section>
+
+                <section class="parking-lot-section glass">
+                    <div class="section-header">
+                        <h2>📝 Impulse Parking Lot</h2>
+                        <span class="muted small">Park side-quests here</span>
+                    </div>
+                    <textarea id="impulse-input" class="parking-lot-textarea" placeholder="Park your urgent non-urgent thoughts..."></textarea>
+                </section>
+
             </div>
 
-            <div id="kinetics-view" class="tab-view hidden">
-                    <div class="section-header">
-                        <div class="title-group">
-                            <h2>🦾 Kinetics Mode</h2>
-                            <p class="suggestion">Research-backed hypertrophy for your frame.</p>
+            <div id="kinetics-view" class="tab-view hidden kinetics-view">
+                    <div class="kinetics-hero-header glass">
+                        <div class="kinetics-hero-row">
+                            <div class="kinetics-hero-left">
+                                <span class="kinetics-kicker">Performance Lab</span>
+                                <h2 class="kinetics-hero-title">🦾 Kinetics Mode</h2>
+                            </div>
+                            <div class="kinetics-hero-right">
+                                <button class="kinetics-gear-btn" id="open-settings-btn" title="Coach Settings">⚙️</button>
+                            </div>
                         </div>
-                        <div class="header-actions">
-                            <button class="secondary-btn small" onclick="window.app.toggleDietNotes()">🥗 Nutrition</button>
-                            <div class="mode-toggle glass">
+                        <p class="kinetics-hero-sub">Research-backed training with clearer progression, cleaner focus, and a stronger flow.</p>
+                        <div class="kinetics-hero-actions">
+                            <button class="kinetics-pill-btn nutrition" onclick="window.app.toggleDietNotes()">🥗 Nutrition</button>
+                            <div class="kinetics-mode-switch">
                                 <button class="mode-btn active" id="mode-daily" onclick="window.app.setKineticsMode('daily')">Daily</button>
                                 <button class="mode-btn" id="mode-campaign" onclick="window.app.setKineticsMode('campaign')">🌟 Journey</button>
                             </div>
                         </div>
                     </div>
 
-                    <div id="diet-notes-panel" class="glass hidden" style="margin-bottom: 20px; padding:15px; border-left: 4px solid var(--sun);">
-                        <h3>🥗 Nutritional Synergy</h3>
+                    <div id="diet-notes-panel" class="glass hidden kinetics-nutrition-panel">
+                        <div class="kinetics-panel-head">
+                            <span class="kinetics-panel-icon">🥗</span>
+                            <div>
+                                <h3>Nutritional Synergy</h3>
+                                <p class="small muted">Food cues that support recovery and progression.</p>
+                            </div>
+                        </div>
                         <p id="diet-text" class="small"></p>
-                        <p id="progression-text" class="small muted" style="margin-top:10px;"></p>
+                        <p id="progression-text" class="small muted kinetics-panel-note"></p>
                     </div>
-                    
+
                     <div class="kinetics-grid" id="kinetics-grid">
                         <!-- Exercise cards injected here -->
                     </div>
 
-                    <div id="campaign-view" class="campaign-container hidden">
-                        <div class="mission-header glass">
-                            <div class="mission-vitals">
-                                <h3 id="current-mission-title">Level 1: Activate the Engine</h3>
-                                <p id="current-mission-objective" class="muted small"></p>
+                        <div id="campaign-view" class="campaign-container hidden">
+                            <div class="mission-header glass">
+                                <div class="mission-nav-box">
+                                    <span class="kinetics-kicker">Current Mission Track</span>
+                                    <div class="mission-nav-header">
+                                        <button class="minimal-btn tiny" id="mission-nav-prev" onclick="window.app.prevMission()" title="Previous Mission">←</button>
+                                        <h3 id="current-mission-title" class="dopamine-pop">Level 1: Activate the Engine</h3>
+                                        <button class="minimal-btn tiny" id="mission-nav-next" onclick="window.app.nextMission()" title="Next Mission">→</button>
+                                    </div>
+                                    <p id="current-mission-objective" class="muted small"></p>
+                                </div>
                             </div>
-                            <div id="mission-3d-wrap" class="glass">
-                                <canvas id="kinetics-3d-canvas"></canvas>
-                                <div id="mission-timer-overlay" class="hidden">
-                                    <svg class="timer-ring" width="120" height="120">
-                                        <circle class="timer-ring-bg" cx="60" cy="60" r="54"></circle>
-                                        <circle class="timer-ring-progress" id="timer-ring-fill" cx="60" cy="60" r="54"></circle>
-                                    </svg>
-                                    <span id="timer-display">30</span>
+
+                            <div class="mission-deck single-column">
+                                <div id="autopilot-panel" class="training-hud-bar glass">
+                                    <div class="hud-left">
+                                        <div class="hud-status">
+                                            <span class="hud-kicker">ENGINE</span>
+                                            <span class="hud-status-pill" id="restless-status-pill">Staged</span>
+                                        </div>
+                                        <div class="hud-info">
+                                            <h3 class="hud-exercise-title" id="hud-exercise-title">Neural Logic</h3>
+                                            <p id="restless-next-up" class="hud-next-label">Next: Standby...</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="hud-center">
+                                        <div class="hud-controls">
+                                            <button class="hud-btn" id="restless-toggle-btn" title="Toggle Autopilot">🦾 Mode: Manual</button>
+                                            <button class="hud-btn primary" id="restless-start-btn">Initiate sequence</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="hud-right">
+                                        <div class="hud-stat">
+                                            <span>Coach</span>
+                                            <strong id="restless-voice-state">VOX</strong>
+                                        </div>
+                                        <button class="hud-btn icon-only" id="toggle-3d-btn" title="Toggle 3D Hologram">🧊</button>
+                                    </div>
+                                </div>
+
+                                <div id="mission-media-wrap" class="glass immersive-void">
+                                    <div class="mission-demo-viewer" id="mission-demo-viewer">
+                                        <img id="mission-demo-media" src="" alt="Exercise demonstration">
+                                        <div class="visual-shimmer"></div>
+                                    </div>
+                                    <canvas id="kinetics-3d-canvas" class="hidden"></canvas>
+
+                                    <div class="recovery-hud-overlay hidden" id="recovery-hud-overlay">
+                                        <div class="recovery-content">
+                                            <span class="recovery-kicker">RECOVERY PHASE</span>
+                                            <div class="recovery-timer-box">
+                                                <h2 id="recovery-timer-display" class="dopamine-pop">15</h2>
+                                                <span class="small muted">SEC REST</span>
+                                            </div>
+                                            <div class="recovery-next-card focus-pulse">
+                                                <span class="small muted">UP NEXT</span>
+                                                <h3 id="recovery-next-title">Exercise Name</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mission-stage-hud" id="mission-stage-hud">
+                                        <div class="mission-stage-badge" id="mission-stage-status">READY</div>
+                                        <div class="mission-stage-copy">
+                                            <p id="mission-stage-instruction" class="hud-instruction">Select Protocol</p>
+                                            <p id="mission-stage-cue" class="hud-cue">Awaiting neural sync...</p>
+                                        </div>
+                                    </div>
+                                    <div class="mission-stage-hud" id="mission-stage-hud">
+                                        <div class="mission-stage-badge" id="mission-stage-status">System Ready</div>
+                                        <div class="mission-stage-copy">
+                                            <h4 id="mission-stage-title">Select Protocol</h4>
+                                            <p id="mission-stage-instruction">Select an exercise to initiate form analysis.</p>
+                                            <p id="mission-stage-cue" class="small dopamine-pop">Focus on intentional movement.</p>
+                                        </div>
+                                    </div>
+                                    <div id="mission-timer-overlay" class="hidden">
+                                        <svg class="timer-ring" width="160" height="160" viewBox="0 0 160 160">
+                                            <circle class="timer-ring-bg" cx="80" cy="80" r="74"></circle>
+                                            <circle class="timer-ring-progress" id="timer-ring-fill" cx="80" cy="80" r="74"></circle>
+                                        </svg>
+                                        <div class="timer-content">
+                                            <span id="mission-timer-display" class="dopamine-pop">30</span>
+                                            <div class="mission-controls">
+                                                <button id="mission-pause-btn" class="control-btn" title="Pause/Resume">
+                                                    <span class="icon">⏸️</span>
+                                                </button>
+                                                <button id="mission-restart-btn" class="control-btn" title="Restart Exercise">
+                                                    <span class="icon">🔄</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="progress-bar-wrap">
-                                <div class="progress-bar" id="mission-progress" style="width: 0%"></div>
+                                <div class="progress-bar" id="mission-progress"></div>
                             </div>
                         </div>
                         <div class="mission-exercises" id="mission-exercises-list">
                             <!-- Injected by JS -->
+                        </div>
+                        <div class="kinetic-history-section glass">
+                            <div class="history-header">
+                                <h4 class="small-caps">📜 Kinetic History</h4>
+                                <div class="history-nav">
+                                    <button class="minimal-btn tiny" onclick="window.app.prevHistoryDate()">←</button>
+                                    <span id="history-current-date" class="small muted">Today</span>
+                                    <button class="minimal-btn tiny" onclick="window.app.nextHistoryDate()">→</button>
+                                </div>
+                            </div>
+                            <div id="mission-history-list" class="history-list">
+                                <!-- Injected by JS -->
+                            </div>
                         </div>
                         <div class="energy-model-tip glass small muted" id="mission-tip"></div>
                     </div>
@@ -245,37 +384,6 @@
             </section>
         </main>
 
-        <!-- 🏅 ACHIEVEMENTS -->
-        <section class="achievements-section glass">
-            <div class="section-header">
-                <h2>🏅 Achievements</h2>
-            </div>
-            <div id="achievements-grid" class="achievements-grid">
-                <!-- Injected by JS -->
-            </div>
-        </section>
-
-        <section class="reward-section glass">
-            <div class="section-header">
-                <h2>Reward Emporium</h2>
-                <div class="filter-pills">
-                    <button class="filter-pill active" data-category="all">All</button>
-                    <button class="filter-pill" data-category="digital">Digital</button>
-                    <button class="filter-pill" data-category="personal">Personal</button>
-                </div>
-            </div>
-            <div id="reward-list" class="reward-grid">
-                <!-- Rewards will be injected here -->
-            </div>
-        </section>
-
-        <section class="parking-lot-section glass">
-            <div class="section-header">
-                <h2>📝 Impulse Parking Lot</h2>
-                <span class="muted small">Park side-quests here</span>
-            </div>
-            <textarea id="impulse-input" class="parking-lot-textarea" placeholder="Park your urgent non-urgent thoughts..."></textarea>
-        </section>
 
         <!-- Template for Modals -->
         <div id="modal-overlay" class="modal-overlay hidden">
@@ -292,7 +400,7 @@
                 <div class="form-row">
                     <div class="form-group half">
                         <label>Energy Required</label>
-                        <select id="habit-energy">
+                        <select id="habit-energy" title="Select Energy Level Required">
                             <option value="low">Low Battery</option>
                             <option value="med" selected>Steady Flow</option>
                             <option value="high">Hyperfocus</option>
@@ -300,7 +408,7 @@
                     </div>
                     <div class="form-group half">
                         <label>Reward Essence</label>
-                        <input type="number" id="habit-reward" value="5">
+                        <input type="number" id="habit-reward" value="5" title="Essence Reward Amount" placeholder="5">
                     </div>
                 </div>
                 <div class="form-group checkbox">
@@ -333,7 +441,7 @@
         <div id="gratitude-modal-overlay" class="modal-overlay hidden">
             <div class="modal glass small">
                 <h3>Plant a Gratitude Seed 🌸</h3>
-                <p class="muted small" style="margin-bottom:15px;">To water the tree, share one small win or thing you're grateful for today.</p>
+                <p class="muted small margin-bottom-15">To water the tree, share one small win or thing you're grateful for today.</p>
                 <div class="form-group">
                     <input type="text" id="gratitude-seed-input" placeholder="Today, I am grateful for..." autofocus>
                 </div>
@@ -341,6 +449,49 @@
                     <button id="confirm-water-btn" class="primary-btn">✨ Water & Plant</button>
                     <button id="close-gratitude-modal-btn" class="secondary-btn">Cancel</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🛠️ Coach Settings Modal -->
+    <div id="settings-modal-overlay" class="modal-overlay hidden">
+        <div class="modal glass small">
+            <div class="modal-header">
+                <h2>🛠️ Coach Settings</h2>
+                <button id="close-settings-btn" class="close-btn">&times;</button>
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label">Neural Coach Voice</label>
+                <div class="toggle-wrapper" id="voice-toggle-wrap">
+                    <button class="toggle-btn active" data-voice="on">🔊 Voice ON</button>
+                    <button class="toggle-btn" data-voice="off">🔇 Muted</button>
+                </div>
+            </div>
+
+            <div class="settings-group mt-4">
+                <label class="settings-label">Training Persona</label>
+                <p class="muted small mb-2">Switching persona will reload your training schedule.</p>
+                <div class="persona-grid">
+                    <button class="persona-card active" data-persona="male">
+                        <span class="persona-icon">🛡️</span>
+                        <div class="persona-info">
+                            <span class="persona-name">Male Track</span>
+                            <span class="persona-desc">Hypertrophy & Strength.</span>
+                        </div>
+                    </button>
+                    <button class="persona-card" data-persona="female">
+                        <span class="persona-icon">🌸</span>
+                        <div class="persona-info">
+                            <span class="persona-name">Female Track</span>
+                            <span class="persona-desc">Tone & Knee-Safe.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-actions mt-6">
+                <button id="save-settings-btn" class="primary-btn full-width">Apply Changes</button>
             </div>
         </div>
     </div>
@@ -358,10 +509,35 @@
         </div>
     </div>
     <canvas id="dopamine-canvas"></canvas>
+
+    <!-- 🦶 Premium Footer -->
+    <footer class="forge-footer glass">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-logo">Habit Forge <span class="badge">PRO</span></span>
+                <p class="footer-tagline">An ADHD-supportive cognitive engine by CogniFlow.</p>
+            </div>
+            <div class="footer-links">
+                <span class="footer-link-label">Modules</span>
+                <button class="footer-link" onclick="document.querySelector('.main-tab[data-tab=rituals]')?.click()">Habits</button>
+                <button class="footer-link" onclick="document.querySelector('.main-tab[data-tab=kinetics]')?.click()">Kinetics</button>
+                <button class="footer-link" onclick="document.querySelector('.main-tab[data-tab=library]')?.click()">Archives</button>
+            </div>
+            <div class="footer-meta">
+                <span class="footer-version">v2.5 · Neural Lab Edition</span>
+                <span class="footer-copyright">© 2026 CogniFlow</span>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="{% static 'js/particles.js' %}"></script>
-    <script src="{% static 'js/kinetics_data.js' %}"></script>
-    <script src="{% static 'js/kinetics_3d.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="{% static 'js/particles.js' %}?v={{ request.GET.v|default:'1' }}"></script>
+    <script src="{% static 'js/kinetics_data.js' %}?v={{ request.GET.v|default:'1' }}"></script>
+    <script src="{% static 'js/kinetics_mixamo_manifest.js' %}?v={{ request.GET.v|default:'1' }}"></script>
+    <script src="{% static 'js/kinetics_fallback.js' %}?v={{ request.GET.v|default:'1' }}"></script>
+    <script src="{% static 'js/kinetics_3d.js' %}?v={{ request.GET.v|default:'1' }}"></script>
+    <script src="{% static 'js/main.js' %}?v={{ request.GET.v|default:'1' }}"></script>
 </body>
 </html>

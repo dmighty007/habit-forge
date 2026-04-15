@@ -7,7 +7,6 @@ from .models import Habit, Reward, UserProfile, EvidenceRecord, Todo, DailyWin, 
 from .presets import RITUAL_PRESETS, DAILY_QUEST_POOL
 import random
 import json
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
 
@@ -110,7 +109,6 @@ def profile_view(request):
     })
 
 
-@csrf_exempt
 @login_required
 def update_profile(request):
     if request.method == 'POST':
@@ -136,6 +134,7 @@ def index(request):
 def get_data(request):
     user = request.user
     profile = user.userprofile
+    check_achievements(user)
 
     # Adaptive Momentum check: only if not in vacation mode
     now = timezone.now()
@@ -152,10 +151,10 @@ def get_data(request):
 
     # ─── DYNAMIC DAILY QUESTS ───
     today = now.date()
-    daily_quests = user.quests.filter(date=today)
+    daily_quests = user.quests.filter(date=today).order_by('id')
     if not daily_quests.exists():
         # Pick 3 random quests from the pool
-        selected = random.sample(DAILY_QUEST_POOL, 3)
+        selected = random.sample(DAILY_QUEST_POOL, min(3, len(DAILY_QUEST_POOL)))
         for q in selected:
             Quest.objects.create(
                 user=user, 
@@ -164,7 +163,7 @@ def get_data(request):
                 category=q['category'],
                 essence_reward=15
             )
-        daily_quests = user.quests.filter(date=today)
+        daily_quests = user.quests.filter(date=today).order_by('id')
     
     quests_data = list(daily_quests.values('id', 'title', 'description', 'is_completed', 'essence_reward', 'category'))
 
@@ -180,13 +179,13 @@ def get_data(request):
     todos = list(
         user.todos.filter(is_completed=False)
         .order_by('-created_at')
-        .values('id', 'title', 'energy_required')
+        .values('id', 'title', 'energy_required', 'is_completed')
     )
     impulses = list(user.impulses.filter(is_processed=False).values('id', 'content', 'timestamp'))
-    achievements = list(user.achievements.all().values('id', 'key', 'title', 'description', 'icon', 'unlocked_at'))
-
-    # Automated Achievement Check (Simple)
-    check_achievements(user)
+    achievements = list(
+        user.achievements.order_by('-unlocked_at')
+        .values('id', 'key', 'title', 'description', 'icon', 'unlocked_at')
+    )
 
     return JsonResponse({
         'essence': profile.essence,
@@ -208,7 +207,6 @@ def get_data(request):
     })
 
 
-@csrf_exempt
 @login_required
 def update_energy(request):
     if request.method == 'POST':
@@ -220,7 +218,6 @@ def update_energy(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-@csrf_exempt
 @login_required
 def add_habit(request):
     if request.method == 'POST':
@@ -237,7 +234,6 @@ def add_habit(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-@csrf_exempt
 @login_required
 def complete_habit(request, habit_id):
     if request.method == 'POST':
@@ -265,7 +261,6 @@ def complete_habit(request, habit_id):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-@csrf_exempt
 @login_required
 def water_tree(request):
     if request.method == 'POST':
@@ -292,7 +287,6 @@ def water_tree(request):
 
 # ─── TODO ENDPOINTS ───
 
-@csrf_exempt
 @login_required
 def add_todo(request):
     if request.method == 'POST':
@@ -309,7 +303,6 @@ def add_todo(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-@csrf_exempt
 @login_required
 def toggle_todo(request, todo_id):
     if request.method == 'POST':
@@ -326,7 +319,6 @@ def toggle_todo(request, todo_id):
 
 # ─── HEALTHY WEEK SEEDING ───
 
-@csrf_exempt
 @login_required
 def seed_healthy_week(request):
     if request.method == 'POST':
@@ -367,7 +359,6 @@ def seed_healthy_week(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
-@csrf_exempt
 @login_required
 def toggle_vacation_mode(request):
     if request.method == 'POST':
@@ -407,7 +398,6 @@ def get_rhythm_data(request):
     return JsonResponse({'rhythm': rhythm})
 
 
-@csrf_exempt
 @login_required
 def add_daily_win(request):
     if request.method == 'POST':
@@ -418,7 +408,6 @@ def add_daily_win(request):
             return JsonResponse({'status': 'ok'})
     return JsonResponse({'status': 'error'}, status=400)
 
-@csrf_exempt
 @login_required
 def complete_quest(request, quest_id):
     if request.method == 'POST':
@@ -449,7 +438,6 @@ def get_exercise_presets(request):
     from .presets import EXERCISE_PRESETS
     return JsonResponse({'presets': EXERCISE_PRESETS})
 
-@csrf_exempt
 @login_required
 def redeem_reward(request, reward_id):
     if request.method == 'POST':
@@ -475,7 +463,6 @@ def redeem_reward(request, reward_id):
             return JsonResponse({'status': 'error', 'msg': 'Not enough essence!'}, status=400)
     return JsonResponse({'status': 'error'}, status=400)
 
-@csrf_exempt
 @login_required
 def complete_exercise(request):
     if request.method == 'POST':
@@ -533,7 +520,6 @@ def check_achievements(user):
             defaults={'title': a['title'], 'description': a['description'], 'icon': a['icon']}
         )
 
-@csrf_exempt
 @login_required
 def save_impulse(request):
     if request.method == 'POST':
