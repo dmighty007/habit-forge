@@ -202,6 +202,7 @@ body.glitch h1, body.glitch h2, body.glitch h3 {
     height: 100vh;
     overflow: hidden;
     background-color: var(--bg);
+    max-width: 100vw; /* Prevent horizontal overflow */
 }
 
 .app-content-wrapper {
@@ -209,10 +210,11 @@ body.glitch h1, body.glitch h2, body.glitch h3 {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Prevent horizontal scroll */
     padding: 0 40px 60px;
     scroll-behavior: smooth;
     position: relative;
+    max-width: 100%;
 }
 
 /* ──────── VERTICAL NAVIGATION RAIL ──────── */
@@ -1062,43 +1064,51 @@ body.quiet .habit-card {
 .primary-btn {
     background: #ffffff;
     color: #000000;
-    border: 1px solid #ffffff;
-    padding: 10px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.9rem;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.88rem;
     cursor: pointer;
-    box-shadow: none;
-    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    letter-spacing: -0.01em;
 }
 
 .primary-btn:hover {
     background: #f0f0f0;
     color: #000000;
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
 }
 
 .secondary-btn {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text);
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-weight: 700;
     font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
 .secondary-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
+
 .secondary-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
     transform: none !important;
+    box-shadow: none !important;
 }
 
 /* ──────── MODAL ──────── */
@@ -1243,7 +1253,7 @@ input[type="checkbox"] {
     }
 }
 
-/* Mobile */
+/* Mobile & Small Tablet */
 @media (max-width: 768px) {
     .app-layout {
         flex-direction: column;
@@ -1251,33 +1261,61 @@ input[type="checkbox"] {
 
     .app-nav-rail {
         width: 100%;
-        height: 64px;
+        height: 60px;
         flex-direction: row;
-        padding: 0 10px;
+        padding: 0;
         border-right: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         position: fixed;
         bottom: 0;
         left: 0;
-        background: #09090b;
+        right: 0;
+        background: var(--bg);
+        backdrop-filter: blur(24px) saturate(180%);
         z-index: 1000;
+        justify-content: center;
+        align-items: center;
     }
 
     .nav-middle {
         flex: 1;
         width: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     .vertical-tabs {
         flex-direction: row;
-        justify-content: space-around;
+        justify-content: center;
         width: 100%;
+        max-width: none;
+        gap: 6px;
+        padding: 0 12px;
     }
 
     .vertical-tabs .main-tab {
-        border-radius: 12px;
-        width: 50px;
-        height: 50px;
+        flex: 1;
+        max-width: none;
+        height: 54px;
+        border-radius: 16px;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .vertical-tabs .main-tab.active::before {
+        left: 50%;
+        bottom: 0;
+        top: auto;
+        width: 24px;
+        height: 3px;
+        transform: translateX(-50%);
+        border-radius: 3px 3px 0 0;
+    }
+
+    .vertical-tabs .main-tab.active {
+        background: rgba(255, 255, 255, 0.08);
     }
 
     .nav-top, .nav-bottom {
@@ -1285,19 +1323,43 @@ input[type="checkbox"] {
     }
 
     .app-content-wrapper {
-        padding: 0 16px 80px;
+        padding: 0 12px 90px; /* Tighter padding, enough bottom room */
     }
 
     .app-header {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px 0;
+        margin-left: -15px;
+        margin-right: -15px;
+        padding-left: 15px;
+        padding-right: 15px;
+        height: auto;
+    }
+
+    .app-header .header-right {
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .stats-group {
+        gap: 8px;
+    }
+
+    .stat-item {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .stat-icon {
+        display: none; /* Hide icons on small mobile to save space */
     }
 
     main {
         grid-template-columns: 1fr !important;
-        gap: 20px;
+        gap: 25px;
     }
 
     .sidebar {
@@ -1308,15 +1370,14 @@ input[type="checkbox"] {
         order: 1;
     }
 
-    .glass {
-        padding: 16px;
-        border-radius: 12px;
-    }
-
-    .section-header h2 {
-        font-size: 0.7rem;
+    .achievements-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
     }
 }
+
+/* Additional mobile-only rules for 768px */
+@media (max-width: 768px) {
     /* Tree */
     .tree-container {
         height: 160px;
@@ -1442,6 +1503,19 @@ input[type="checkbox"] {
     .stat-item {
         padding: 4px 8px;
         font-size: 0.72rem !important;
+    }
+    .app-header .header-right {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+    .state-selector-wrapper, .stats-group, .quick-actions {
+        width: 100%;
+        justify-content: center;
+        display: flex;
+    }
+    .logo-full {
+        font-size: 1.2rem !important;
     }
     .glass {
         padding: 14px;
@@ -3215,6 +3289,8 @@ body.glitch h1, body.glitch h2 {
     flex-direction: column;
     gap: 28px;
     animation: fadeIn 0.6s ease-out;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* ──── KINETICS HERO HEADER ──── */
@@ -3453,7 +3529,7 @@ body.glitch h1, body.glitch h2 {
 
 .kinetics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 20px;
 }
 .exercise-card {
@@ -3462,10 +3538,12 @@ body.glitch h1, body.glitch h2 {
     flex-direction: column;
     gap: 18px;
     min-height: 100%;
-    padding: 26px;
+    padding: 22px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-left: 6px solid var(--sun);
     border-radius: 12px;
+    box-sizing: border-box;
+    max-width: 100%;
     background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
         rgba(13, 20, 38, 0.85);
@@ -3650,15 +3728,51 @@ body.brutal .main-tab.active {
 }
 
 .mission-nav-box {
-    padding: 24px 32px;
+    padding: 20px 24px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.mission-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Arrows at edges */
+    gap: 8px;
+    margin: 12px 0 8px;
+    width: 100%;
+}
+
+.mission-nav-header h3 {
+    flex: 1;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+.mission-nav-header .minimal-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--sun);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
 .mission-deck {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr;
     gap: 24px;
     margin-bottom: 24px;
     align-items: start;
@@ -3673,15 +3787,17 @@ body.brutal .main-tab.active {
 
 .training-hud-bar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 28px;
+    padding: 16px 20px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 20px;
-    min-height: 90px;
+    min-height: auto;
     transition: all 0.4s ease;
+    gap: 16px;
 }
 
 .hud-left { display: flex; align-items: center; gap: 24px; }
@@ -3716,33 +3832,35 @@ body.brutal .main-tab.active {
 }
 
 .hud-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    flex: 1 1 100%;
+    order: 3;
 }
 
 .hud-controls { display: flex; gap: 12px; }
 
 .hud-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text);
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.85rem;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.82rem;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
     white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .hud-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .hud-btn.primary {
@@ -3772,7 +3890,7 @@ body.brutal .main-tab.active {
 
 .immersive-void {
     width: 100%;
-    height: 620px;
+    height: min(620px, 70vh);
     border-radius: 12px;
     overflow: hidden;
     background: radial-gradient(circle at center, hsla(222, 47%, 8%, 1) 0%, hsla(222, 47%, 2%, 1) 100%);
@@ -3844,9 +3962,10 @@ body.brutal .main-tab.active {
 .recovery-next-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 24px 48px;
+    padding: 24px 32px;
     border-radius: 12px;
-    min-width: 320px;
+    min-width: auto;
+    max-width: 100%;
 }
 
 .recovery-next-card h3 {
@@ -3975,7 +4094,7 @@ body.brutal .main-tab.active {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    width: 320px;
+    width: min(320px, calc(100% - 48px));
 }
 
 .mission-stage-badge {
@@ -4777,60 +4896,164 @@ body.brutal .main-tab.active {
 }
 
 @media (max-width: 768px) {
+    /* ── Kinetics Hero ── */
     .kinetics-hero-header {
-        padding: 16px 18px;
-        border-radius: 20px;
+        padding: 16px;
+        border-radius: 16px;
+    }
+    .kinetics-hero-row {
+        flex-direction: column;
+        gap: 12px;
     }
     .kinetics-hero-title {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
     .kinetics-hero-sub {
         font-size: 0.75rem;
+        max-width: none;
     }
     .kinetics-gear-btn {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    .kinetics-hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .kinetics-pill-btn {
+        text-align: center;
+        padding: 10px 14px;
+        font-size: 0.78rem;
+    }
+    .kinetics-kicker {
+        font-size: 0.6rem;
+        padding: 5px 10px;
+    }
+    .kinetics-mode-switch {
+        width: 100%;
+    }
+    .kinetics-mode-switch .mode-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    /* ── Kinetics View & Grid ── */
+    .kinetics-view {
+        gap: 20px;
+    }
+    .kinetics-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* ── Exercise Cards ── */
+    .exercise-card {
+        padding: 18px;
+        gap: 14px;
+        border-radius: 14px;
+    }
+    .exercise-card h3 {
+        font-size: 1rem;
+    }
+    .exercise-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.4rem;
+    }
+    .exercise-desc {
+        font-size: 0.82rem;
+    }
+
+    /* ── Training HUD Bar ── */
+    .training-hud-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+        gap: 14px;
+        min-height: auto;
+    }
+    .hud-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .hud-right {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .hud-stat {
+        align-items: flex-start;
+    }
+    .hud-exercise-title {
         font-size: 1.1rem;
     }
+    .hud-controls {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .hud-btn {
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        flex: 1;
+        justify-content: center;
+    }
+    .hud-center {
+        position: static;
+        transform: none;
+    }
 
-    .footer-inner {
+    /* ── Immersive Void ── */
+    .immersive-void {
+        height: 350px;
+    }
+
+    /* ── Mission Deck ── */
+    .mission-deck {
         grid-template-columns: 1fr;
-        gap: 32px;
     }
-    .footer-meta {
-        text-align: left;
+    .mission-nav-box {
+        padding: 16px;
+    }
+    .mission-header {
+        margin-bottom: 16px;
     }
 
+    /* ── Mode Toggle ── */
+    .mode-toggle {
+        width: 100%;
+    }
+    .mode-btn {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
 
     .kinetics-actions {
         width: 100%;
     }
-
     .kinetics-nutrition-btn,
     .kinetics-mode-toggle {
         width: 100%;
     }
-
     .kinetics-mode-toggle {
         justify-content: space-between;
     }
 
-    .mode-btn {
-        flex: 1;
-    }
-
-    .exercise-card,
-    .mission-header,
     .mission-exercise-card,
     .kinetics-nutrition-panel,
     .next-level-area {
         padding: 18px;
-        border-radius: 18px;
+        border-radius: 16px;
     }
 
     #mission-3d-wrap {
-        height: 300px;
-        min-height: 300px;
+        height: 280px;
+        min-height: 280px;
+        border-radius: 16px;
     }
 
     #mission-timer-display {
@@ -4838,33 +5061,63 @@ body.brutal .main-tab.active {
     }
 
     .mission-stage-hud {
-        left: 12px;
-        top: 12px;
-        width: min(320px, calc(100% - 24px));
+        left: 10px;
+        top: 10px;
+        width: calc(100% - 20px);
+        padding: 12px;
+    }
+    .mission-stage-copy {
         padding: 14px;
+    }
+    .mission-stage-copy h4 {
+        font-size: 0.9rem;
     }
 
     .mission-demo-viewer {
-        top: 144px;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
+        top: 120px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
     }
 
     .restless-controls {
         align-items: stretch;
     }
-
     .restless-controls > * {
         flex: 1 1 100%;
     }
-
     .restless-insights {
         grid-template-columns: 1fr;
     }
-
     .restless-next-card {
         grid-column: auto;
+    }
+
+    /* ── Footer ── */
+    .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 0 16px;
+    }
+    .footer-meta {
+        text-align: left;
+    }
+
+    /* ── Persona / Coach Settings ── */
+    .persona-grid {
+        grid-template-columns: 1fr;
+    }
+    .toggle-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── Recovery overlay ── */
+    .recovery-timer-box h2 {
+        font-size: 4rem;
+    }
+    .recovery-next-card {
+        min-width: auto;
+        padding: 18px 24px;
     }
 }
 
@@ -4873,26 +5126,69 @@ body.brutal .main-tab.active {
         grid-template-columns: 1fr;
     }
 
-    .exercise-card-top,
+    .exercise-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
     .kinetics-panel-head {
         align-items: flex-start;
     }
 
+    .kinetics-hero-title {
+        font-size: 1rem;
+    }
+
+    .exercise-card {
+        padding: 14px;
+    }
+    .exercise-metric {
+        padding: 10px;
+    }
+
+    .hud-btn {
+        padding: 8px 10px;
+        font-size: 0.72rem;
+    }
+    .hud-btn.icon-only {
+        width: 36px;
+        height: 36px;
+    }
+
     .mission-vitals h3 {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
     }
 
     #mission-3d-wrap {
-        height: 240px;
-        min-height: 240px;
+        height: 220px;
+        min-height: 220px;
     }
 
     .mission-stage-copy p {
         max-width: none;
+        font-size: 0.75rem;
     }
 
     .mission-demo-caption {
-        font-size: 0.68rem;
+        font-size: 0.65rem;
+    }
+
+    .training-hud-bar {
+        padding: 10px;
+        gap: 12px;
+    }
+
+    .hud-btn {
+        padding: 10px 14px;
+        font-size: 0.75rem;
+    }
+
+    .mission-nav-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .recovery-timer-box h2 {
+        font-size: 3rem;
     }
 }
 
