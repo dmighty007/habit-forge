@@ -301,6 +301,7 @@ class HabitForge {
 
     restoreTheme() {
         const saved = localStorage.getItem('hf-theme');
+        if (saved === 'quiet') document.body.classList.add('quiet');
         if (saved === 'brutal') document.body.classList.add('brutal');
         if (saved === 'glitch') document.body.classList.add('glitch');
         this.updateThemeButton();
@@ -313,6 +314,8 @@ class HabitForge {
         let next = 'cheerful';
         
         if (current === 'cheerful') {
+            next = 'quiet';
+        } else if (current === 'quiet') {
             next = 'brutal';
         } else if (current === 'brutal') {
             next = hasGlitch ? 'glitch' : 'cheerful';
@@ -320,7 +323,7 @@ class HabitForge {
             next = 'cheerful';
         }
 
-        document.body.classList.remove('brutal', 'glitch');
+        document.body.classList.remove('quiet', 'brutal', 'glitch');
         if (next !== 'cheerful') document.body.classList.add(next);
         
         localStorage.setItem('hf-theme', next);
@@ -333,9 +336,12 @@ class HabitForge {
         const saved = localStorage.getItem('hf-theme');
         if (saved === 'glitch') {
             btn.textContent = '👾 Glitch';
-            btn.className = 'primary-btn pulse'; // Extra styling for glitch
+            btn.className = 'primary-btn pulse';
         } else if (saved === 'brutal') {
             btn.textContent = '🔥 Brutal';
+            btn.className = 'secondary-btn';
+        } else if (saved === 'quiet') {
+            btn.textContent = '🍃 Quiet';
             btn.className = 'secondary-btn';
         } else {
             btn.textContent = '☀️ Cheerful';
@@ -1080,7 +1086,7 @@ class HabitForge {
             const shieldBtn = document.getElementById('burnout-shield-btn');
             if (shieldBtn) {
                 shieldBtn.classList.toggle('active', this.data.vacationActive);
-                shieldBtn.textContent = this.data.vacationActive ? '🛡️ Shield: ACTIVE' : '🛡️ Shield: OFF';
+                shieldBtn.title = this.data.vacationActive ? '🛡️ Shield: ACTIVE' : '🛡️ Shield: OFF';
             }
 
             const treeVisual = document.getElementById('tree-stage');
@@ -1913,7 +1919,7 @@ class HabitForge {
                 });
                 
                 if (this.restlessActive && !isMinimal) {
-                    this.setRestlessVoiceLine(`Coach confirms ${name} complete`);
+                    this.setRestlessVoiceLine(`${name} completed`);
                     this.speak(`${name} complete.`, { rate: 1.04 });
                 }
                 this.render();
@@ -1968,7 +1974,7 @@ class HabitForge {
             this.resetMissionNarrationState();
             this.missionPaused = false;
             this.updatePauseButtonUI();
-            this.setRestlessVoiceLine(`Coach prepping ${exercise.name}`);
+            this.setRestlessVoiceLine(`Preparing ${exercise.name}`);
             this.updateRestlessUI();
 
             const timerWrap = document.getElementById('mission-timer-overlay');
@@ -1997,7 +2003,7 @@ class HabitForge {
                 prep--;
                 if (prep > 0) {
                     this.updateMissionTimerDisplay(prep, 3);
-                    this.setRestlessVoiceLine(`Coach counting in ${exercise.name}`);
+                    this.setRestlessVoiceLine(`Commencing ${exercise.name}`);
                     this.updateMissionStage({
                         status: `Prepare ${prep}`,
                         title: exercise.name,
@@ -2024,7 +2030,7 @@ class HabitForge {
         this.currentExerciseParams = { id, anim, name, xp, essence, color, seconds };
         this.missionPaused = false;
         this.updatePauseButtonUI();
-        this.setRestlessVoiceLine(`Coach live on ${name}`);
+        this.setRestlessVoiceLine(`Active: ${name}`);
 
         this.missionTimeRemaining = parseInt(seconds) || 30;
         this.missionTotalTime = this.missionTimeRemaining;
@@ -2060,13 +2066,13 @@ class HabitForge {
             const halfwayMark = Math.max(2, Math.floor(this.missionTotalTime / 2));
             if (this.restlessActive && !this.missionNarrationState.halfwaySpoken && this.missionTimeRemaining === halfwayMark) {
                 this.missionNarrationState.halfwaySpoken = true;
-                this.setRestlessVoiceLine(`Coach cue: halfway through ${name}`);
+                this.setRestlessVoiceLine(`50% complete: ${name}`);
                 this.speak(this.buildRestlessMidSetPrompt(exercise), { rate: 1.01 });
             }
 
             if (this.restlessActive && !this.missionNarrationState.tenSecondSpoken && this.missionTimeRemaining === 10) {
                 this.missionNarrationState.tenSecondSpoken = true;
-                this.setRestlessVoiceLine(`Coach push: final ten on ${name}`);
+                this.setRestlessVoiceLine(`10 seconds remaining: ${name}`);
                 this.speak(this.buildRestlessFinalPrompt(exercise));
             }
 
@@ -2114,7 +2120,7 @@ class HabitForge {
         // Show Pro Recovery HUD
         this.showRecoveryHUD(restSeconds, nextExercise);
         
-        this.setRestlessVoiceLine(`Coach recovery. ${nextExercise.name} is next.`);
+        this.setRestlessVoiceLine(`Recovery active. Next: ${nextExercise.name}`);
         this.speak(this.buildRestlessRecoveryPrompt(restSeconds, nextExercise), { rate: 0.98 });
 
         this.missionTimer = setInterval(() => {
@@ -2194,10 +2200,10 @@ class HabitForge {
         this.updatePauseButtonUI();
         if (this.missionPaused) {
             this.speak("Just taking a moment to breathe. I'll wait for you.");
-            this.setRestlessVoiceLine("Coach paused... waiting for you");
+            this.setRestlessVoiceLine("System paused");
         } else {
             this.speak("Ready when you are. Resuming.");
-            this.setRestlessVoiceLine("Coach live again");
+            this.setRestlessVoiceLine("System active");
         }
     }
 

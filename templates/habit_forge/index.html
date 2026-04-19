@@ -19,41 +19,81 @@
 </head>
 <body class="state-steady">
     <div id="aura-overlay" class="aura-overlay hidden"></div>
-    <div id="app">
-        <nav class="glass-nav">
-            <div class="logo">Habit Forge <span class="badge">PRO</span></div>
-            <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Brutal Mode">☀️ Cheerful</button>
-            <button id="burnout-shield-btn" class="shield-btn" title="Activate Burnout Shield (24h Reset)">🛡️ Shield: OFF</button>
-
-            <div class="state-selector-wrapper">
-                <span class="label">Current State:</span>
-                <div class="state-pills" id="energy-selector">
-                    <button class="state-pill" data-state="low" title="Low Battery - Tiny version of rituals only">🔋 Low</button>
-                    <button class="state-pill active" data-state="med" title="Steady Flow - Normal rituals">⚡ Steady</button>
-                    <button class="state-pill" data-state="high" title="Hyperfocus - Challenge yourself">🚀 Hyper</button>
+    <div id="app" class="app-layout">
+        <!-- 📱 Vertical Navigation Rail -->
+        <aside class="app-nav-rail glass">
+            <div class="nav-top">
+                <div class="logo-small" title="Habit Forge PRO">
+                    <span class="logo-icon">HF</span>
                 </div>
             </div>
 
-            <div class="stats-group">
-                <div class="stat-item focus">
-                    <span class="stat-icon">🎯</span>
-                    <span id="focus-points">0</span> Focus
-                </div>
-                <div class="stat-item essence">
-                    <span class="stat-icon">✨</span>
-                    <span id="essence-count">0</span> Essence
+            <div class="nav-middle">
+                <div class="main-tabs vertical-tabs">
+                    <button class="main-tab active" data-tab="rituals" title="🔮 Rituals">
+                        <span class="tab-icon">🔮</span>
+                    </button>
+                    <button class="main-tab" data-tab="kinetics" title="🦾 Kinetics">
+                        <span class="tab-icon">🦾</span>
+                    </button>
+                    <button class="main-tab" data-tab="library" title="📚 Library">
+                        <span class="tab-icon">📚</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="user-pill">
+            <div class="nav-bottom">
                 <button class="user-avatar" id="user-avatar-btn" title="Coach Settings">{{ user.username.0|upper }}</button>
-                <span class="user-name" id="user-display-name">{{ user.username }}</span>
-                <a href="/logout/" class="logout-btn" title="Sign Out">↗</a>
+                <a href="/logout/" class="logout-btn-vertical" title="Sign Out">↗</a>
             </div>
-        </nav>
+        </aside>
 
-        <main>
+        <!-- Main Content Area -->
+        <div class="app-content-wrapper">
+            <!-- Top Action Header -->
+            <header class="app-header glass">
+                <div class="header-left">
+                    <div class="logo-full">Habit Forge <span class="badge">PRO</span></div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="state-selector-wrapper">
+                        <div class="state-pills" id="energy-selector">
+                            <button class="state-pill" data-state="low" title="Low Energy">🔋</button>
+                            <button class="state-pill active" data-state="med" title="Steady Flow">⚡</button>
+                            <button class="state-pill" data-state="high" title="Hyperfocus">🚀</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-group">
+                        <div class="stat-item focus" title="Focus Points">
+                            <span class="stat-icon">🎯</span> <span id="focus-points">0</span>
+                        </div>
+                        <div class="stat-item essence" title="Essence">
+                            <span class="stat-icon">✨</span> <span id="essence-count">0</span>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button id="burnout-shield-btn" class="shield-btn icon-btn" title="Shield Status">🛡️</button>
+                        <button id="theme-toggle" class="theme-toggle-btn icon-btn" title="Toggle Theme">☀️</button>
+                    </div>
+                </div>
+            </header>
+
+            <main>
             <aside class="sidebar">
+                <!-- 📊 LIFE RHYTHM -->
+                <section class="rhythm-section glass">
+                    <div class="section-header">
+                        <h2>Life Rhythm</h2>
+                    </div>
+                    <p class="muted small" style="margin-bottom: 12px;">30-day Completion Heatmap</p>
+                    <div id="rhythm-map" class="rhythm-map">
+                        <!-- Heatmap grid injected here -->
+                    </div>
+                </section>
+
                 <section class="forge-panel glass">
                     <div class="section-header">
                         <h2>Growth Tree</h2>
@@ -99,7 +139,7 @@
                         </select>
                         <button id="toggle-audio-btn" class="secondary-btn full-width">🎵 Play Stream</button>
                     </div>
-                    <p id="timer-sessions" class="muted small text-center mt-2">Sessions: 0 🍅</p>
+                    <p id="timer-sessions" class="muted small text-center mt-2">Sessions: 0</p>
                 </section>
 
                 <!-- 🧊 ICEBREAKER -->
@@ -149,12 +189,7 @@
             </aside>
 
             <section class="ritual-container">
-                <!-- 🔄 TAB NAVIGATION -->
-                <div class="main-tabs glass">
-                    <button class="main-tab active" data-tab="rituals">🔮 Alchemy</button>
-                    <button class="main-tab" data-tab="kinetics">🦾 Kinetics</button>
-                    <button class="main-tab" data-tab="library">📚 Archives</button>
-                </div>
+                <!-- Tabs Moved to Sidebar -->
 
             <div id="rituals-view" class="tab-view">
                 <!-- 🔮 FORTUNE COOKIE -->
@@ -371,20 +406,9 @@
                     </div>
                 </div>
 
-                <!-- 📊 LIFE RHYTHM -->
-                <section class="rhythm-section glass">
-                    <div class="section-header">
-                        <h2>📊 Life Rhythm</h2>
-                        <p class="muted small">30-day Completion Heatmap</p>
-                    </div>
-                    <div id="rhythm-map" class="rhythm-map">
-                        <!-- Heatmap grid injected here -->
-                    </div>
-                </section>
             </section>
         </main>
-
-
+        </div> <!-- End .app-content-wrapper -->
         <!-- Template for Modals -->
         <div id="modal-overlay" class="modal-overlay hidden">
             <div class="modal glass">
