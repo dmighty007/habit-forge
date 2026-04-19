@@ -210,11 +210,26 @@ body.glitch h1, body.glitch h2, body.glitch h3 {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
     padding: 0 40px 60px;
     scroll-behavior: smooth;
     position: relative;
     max-width: 100%;
+}
+
+/* Custom Slim Scrollbar */
+.app-content-wrapper::-webkit-scrollbar {
+    width: 5px;
+}
+.app-content-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+.app-content-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.app-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* ──────── VERTICAL NAVIGATION RAIL ──────── */
@@ -318,11 +333,14 @@ body.glitch .main-tab {
     content: '';
     position: absolute;
     left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
     background: var(--sun);
-    box-shadow: 0 0 20px var(--sun-glow);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 
+        0 0 15px var(--sun-glow),
+        0 0 30px var(--sun-glow);
 }
 
 .nav-bottom {
@@ -615,19 +633,29 @@ main {
 }
 
 .glass {
-    background: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
     padding: 24px;
-    transition: transform 0.2s, border-color 0.2s;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 0 20px rgba(255, 255, 255, 0.02);
 }
+
 .glass:hover {
     border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: none;
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.2),
+        0 10px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glass:active, .primary-btn:active, .secondary-btn:active, .hud-btn:active {
+    transform: scale(0.97);
 }
 
 /* ──────── SIDEBAR ──────── */
@@ -1329,19 +1357,16 @@ input[type="checkbox"] {
     .app-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
-        padding: 15px 0;
-        margin-left: -15px;
-        margin-right: -15px;
-        padding-left: 15px;
-        padding-right: 15px;
+        gap: 12px;
+        padding: 12px 16px;
+        margin-left: -12px;
+        margin-right: -12px;
         height: auto;
     }
-
     .app-header .header-right {
         width: 100%;
         justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
     }
 
     .stats-group {
@@ -1349,12 +1374,20 @@ input[type="checkbox"] {
     }
 
     .stat-item {
-        padding: 6px 10px;
-        font-size: 0.85rem;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .stat-icon {
-        display: none; /* Hide icons on small mobile to save space */
+        display: inline-block; /* Restore icons but keep them small */
+        font-size: 0.9rem;
+        opacity: 0.8;
     }
 
     main {
@@ -1386,15 +1419,17 @@ input[type="checkbox"] {
     }
     /* Ritual grid */
     .ritual-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
     }
     .habit-card {
         padding: 18px;
-        border-radius: 12px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     .habit-card h3 {
-        font-size: 1.05rem !important;
+        font-size: 1rem !important;
+        margin-bottom: 8px;
     }
     .complete-btn-wrapper {
         height: 42px;
@@ -1414,12 +1449,15 @@ input[type="checkbox"] {
     }
     /* Timer */
     .timer-ring-container {
-        width: 100px;
-        height: 100px;
-        margin: 10px auto;
+        width: 120px;
+        height: 120px;
+        margin: 15px auto;
+        position: relative;
     }
     .timer-display {
-        font-size: 1.4rem !important;
+        font-size: 1.6rem !important;
+        font-weight: 900;
+        letter-spacing: -0.02em;
     }
     .timer-controls .primary-btn,
     .timer-controls .secondary-btn {
@@ -1435,7 +1473,7 @@ input[type="checkbox"] {
     /* Achievements */
     .achievements-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px;
+        gap: 10px;
     }
     .achievement-item {
         padding: 12px 8px;
@@ -1458,23 +1496,34 @@ input[type="checkbox"] {
         margin-top: 16px;
     }
     .reward-card {
-        padding: 18px;
+        padding: 20px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .quest-card {
+        padding: 14px;
+        border-radius: 12px;
+        transform: none !important; /* Disable translateX on mobile */
+    }
+    .quest-card h4 {
+        font-size: 0.9rem;
     }
     /* Modal */
     .modal {
-        width: 95%;
-        padding: 24px;
-        border-radius: 12px;
-    }
-    .modal.small {
+        width: 92%;
         padding: 20px;
+        border-radius: 16px;
     }
-    .modal h3 {
-        font-size: 1.2rem !important;
+    .modal-header h2 {
+        font-size: 1.15rem;
     }
     .form-row {
-        flex-direction: column;
-        gap: 0;
+        gap: 12px;
+    }
+    .input-group label {
+        font-size: 0.75rem;
+        margin-bottom: 4px;
     }
     .half {
         width: 100%;
@@ -1542,12 +1591,14 @@ input[type="checkbox"] {
         flex-wrap: wrap;
     }
     .primary-btn {
-        padding: 10px 16px;
-        font-size: 0.78rem !important;
+        padding: 12px 20px;
+        font-size: 0.85rem !important;
+        border-radius: 14px;
     }
     .secondary-btn {
-        padding: 7px 12px;
-        font-size: 0.74rem;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+        border-radius: 12px;
     }
     .timer-ring-container {
         width: 90px;
@@ -3832,8 +3883,10 @@ body.brutal .main-tab.active {
 }
 
 .hud-center {
-    flex: 1 1 100%;
-    order: 3;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .hud-controls { display: flex; gap: 12px; }
@@ -4944,45 +4997,53 @@ body.brutal .main-tab.active {
         gap: 20px;
     }
     .kinetics-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
     /* ── Exercise Cards ── */
     .exercise-card {
         padding: 18px;
-        gap: 14px;
-        border-radius: 14px;
+        gap: 12px;
+        border-radius: 16px;
     }
     .exercise-card h3 {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
     .exercise-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 1.4rem;
+        width: 42px;
+        height: 42px;
+        font-size: 1.5rem;
     }
     .exercise-desc {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        margin-top: 4px;
+    }
+    .exercise-card .badge {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+        border-radius: 8px;
     }
 
     /* ── Training HUD Bar ── */
     .training-hud-bar {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 16px;
-        gap: 14px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        gap: 10px;
         min-height: auto;
     }
     .hud-left {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
     }
     .hud-right {
         flex-direction: row;
-        justify-content: space-between;
-        gap: 12px;
+        align-items: center;
+        gap: 8px;
     }
     .hud-stat {
         align-items: flex-start;
@@ -5127,9 +5188,10 @@ body.brutal .main-tab.active {
     }
 
     .exercise-card-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
     }
     .kinetics-panel-head {
         align-items: flex-start;
@@ -5146,13 +5208,24 @@ body.brutal .main-tab.active {
         padding: 10px;
     }
 
+    .hud-left {
+        gap: 10px;
+    }
+    .hud-info h3 {
+        font-size: 0.9rem;
+    }
+    .hud-status-pill {
+        font-size: 0.6rem;
+    }
     .hud-btn {
-        padding: 8px 10px;
-        font-size: 0.72rem;
+        padding: 10px 18px;
+        font-size: 0.78rem;
+        gap: 8px;
+        border-radius: 12px;
     }
     .hud-btn.icon-only {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
 
     .mission-vitals h3 {
@@ -5164,9 +5237,24 @@ body.brutal .main-tab.active {
         min-height: 220px;
     }
 
+    .mission-stage-hud {
+        width: calc(100% - 24px);
+        left: 12px;
+        top: 12px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        background: rgba(13, 20, 38, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .mission-stage-copy h4 {
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
     .mission-stage-copy p {
         max-width: none;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
+        line-height: 1.4;
     }
 
     .mission-demo-caption {
