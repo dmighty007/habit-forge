@@ -30,13 +30,13 @@
 
             <div class="nav-middle">
                 <div class="main-tabs vertical-tabs">
-                    <button class="main-tab active" data-tab="rituals" title="🔮 Rituals">
+                    <button class="main-tab active" data-tab="rituals" title="🔮 Alchemy">
                         <span class="tab-icon">🔮</span>
                     </button>
                     <button class="main-tab" data-tab="kinetics" title="🦾 Kinetics">
                         <span class="tab-icon">🦾</span>
                     </button>
-                    <button class="main-tab" data-tab="library" title="📚 Library">
+                    <button class="main-tab" data-tab="library" title="📚 Archives">
                         <span class="tab-icon">📚</span>
                     </button>
                 </div>
@@ -59,7 +59,7 @@
                 <div class="header-right">
                     <div class="state-selector-wrapper">
                         <div class="state-pills" id="energy-selector">
-                            <button class="state-pill" data-state="low" title="Low Energy">🔋</button>
+                            <button class="state-pill" data-state="low" title="Low Battery">🔋</button>
                             <button class="state-pill active" data-state="med" title="Steady Flow">⚡</button>
                             <button class="state-pill" data-state="high" title="Hyperfocus">🚀</button>
                         </div>
@@ -75,7 +75,7 @@
                     </div>
 
                     <div class="quick-actions">
-                        <button id="burnout-shield-btn" class="shield-btn icon-btn" title="Shield Status">🛡️</button>
+                        <button id="burnout-shield-btn" class="shield-btn icon-btn" title="Burnout Shield">🛡️</button>
                         <button id="theme-toggle" class="theme-toggle-btn icon-btn" title="Toggle Theme">☀️</button>
                     </div>
                 </div>
@@ -133,16 +133,19 @@
                             <option value="piano">🎹 Classical Piano (Radio Swiss)</option>
                             <option value="violin">🎻 Baroque & Violins (1.FM)</option>
                             <option value="classical">🎼 Classic Mix (1.FM)</option>
-                            <option value="lofi">🎧 Lofi Chill Beats</option>
-                            <option value="ambient">🌌 Space Station Ambient (SomaFM)</option>
-                            <option value="drone">🧘 Deep Focus Drone (SomaFM)</option>
+                            <option value="piano">Classical Piano (Radio Swiss)</option>
+                            <option value="violin">Baroque & Violins (1.FM)</option>
+                            <option value="classical">Classic Mix (1.FM)</option>
+                            <option value="lofi">Lofi Chill Beats</option>
+                            <option value="ambient">Space Station Ambient (SomaFM)</option>
+                            <option value="drone">Deep Focus Drone (SomaFM)</option>
                         </select>
-                        <button id="toggle-audio-btn" class="secondary-btn full-width">🎵 Play Stream</button>
+                        <button id="toggle-audio-btn" class="secondary-btn full-width">Play Stream</button>
                     </div>
-                    <p id="timer-sessions" class="muted small text-center mt-2">Sessions: 0</p>
+                    <p id="timer-sessions" class="muted small text-center mt-2">Sessions: 0 🍅</p>
                 </section>
 
-                <!-- 🧊 ICEBREAKER -->
+                <!-- ICEBREAKER -->
                 <section class="glass text-center">
                     <button id="icebreaker-btn" class="primary-btn full-width">🧊 I'm Stuck — Pick For Me</button>
                     <p id="icebreaker-result" class="muted small mt-2 min-h-20"></p>
